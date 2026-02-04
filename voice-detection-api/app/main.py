@@ -9,6 +9,24 @@ from .schemas import VoiceRequest, VoiceResponse
 app = FastAPI(title="Voice Detection API", version="1.0.0")
 
 
+@app.get("/")
+async def root():
+    """
+    Root endpoint - provides API information and links.
+    """
+    return {
+        "message": "Voice Detection API",
+        "version": "1.0.0",
+        "endpoints": {
+            "health": "/health",
+            "predict": "/predict",
+            "docs": "/docs",
+            "openapi": "/openapi.json"
+        },
+        "status": "running"
+    }
+
+
 @app.post("/predict", response_model=VoiceResponse)
 async def predict_endpoint(
     request: VoiceRequest = Body(...),
