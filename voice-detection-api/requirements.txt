@@ -1,0 +1,11 @@
+fastapi==0.115.0
+uvicorn[standard]==0.31.0
+python-multipart==0.0.17
+soundfile==0.12.1
+numpy==2.1.2
+pydantic
+librosa
+scipy
+requests
+SpeechRecognition
+python-dotenv
