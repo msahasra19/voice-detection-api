@@ -1,5 +1,8 @@
 from fastapi import FastAPI, Header, HTTPException, status, Body
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from typing import Annotated
+from pathlib import Path
 
 from .auth import validate_api_key
 from .model import detect_voice
@@ -8,12 +11,22 @@ from .schemas import VoiceRequest, VoiceResponse
 
 app = FastAPI(title="Voice Detection API", version="1.0.0")
 
+# Mount static files
+static_dir = Path(__file__).parent.parent / "static"
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
 
 @app.get("/")
 async def root():
     """
-    Root endpoint - provides API information and links.
+    Serve the web interface.
     """
+    index_path = static_dir / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
+    
+    # Fallback to API info if static files don't exist
     return {
         "message": "Voice Detection API",
         "version": "1.0.0",
