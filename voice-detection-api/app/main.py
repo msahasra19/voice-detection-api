@@ -11,17 +11,11 @@ from .schemas import VoiceRequest, VoiceResponse
 
 app = FastAPI(title="Voice Detection API", version="1.0.0")
 
-# Mount static files
-# Try to resolve the static directory relative to this file, but also
-# support deployments where the working directory is the project root.
-static_dir_candidates = [
-    Path(__file__).resolve().parent.parent / "static",
-    Path.cwd() / "static",
-]
-
-static_dir = next((p for p in static_dir_candidates if p.exists()), None)
-
-if static_dir is not None and static_dir.exists():
+# Mount static files from the project-root-relative "static" folder.
+# This matches both local runs (uvicorn from repo root) and Render's
+# working directory (cloned repo root).
+static_dir = Path("static")
+if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 
@@ -30,18 +24,11 @@ async def root():
     """
     Serve the web interface.
     """
-    # Try the resolved static directory first
-    if static_dir is not None:
-        index_path = static_dir / "index.html"
-        if index_path.exists():
-            return FileResponse(index_path)
+    index_path = static_dir / "index.html"
+    if index_path.exists():
+        return FileResponse(index_path)
 
-    # Fallback: try a relative path from the current working directory
-    cwd_index = Path("static") / "index.html"
-    if cwd_index.exists():
-        return FileResponse(cwd_index)
-    
-    # Fallback to API info if static files don't exist
+    # Fallback to API info if static files don't exist at all
     return {
         "message": "Voice Detection API",
         "version": "1.0.0",
