@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Detection AI - Detect AI vs Human Voice</title>
+    <meta name="description" content="Advanced AI-powered voice detection system that analyzes audio to determine if it's AI-generated or human, with language detection and quality analysis.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Use /static paths so FastAPI's static mount serves these correctly in deployment -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+    
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z" fill="url(#gradient1)"/>
+                    <path d="M12 6C8.69 6 6 8.69 6 12C6 15.31 8.69 18 12 18C15.31 18 18 15.31 18 12C18 8.69 15.31 6 12 6ZM12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12C16 14.21 14.21 16 12 16Z" fill="url(#gradient2)"/>
+                    <defs>
+                        <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="22">
+                            <stop offset="0%" stop-color="#667eea"/>
+                            <stop offset="100%" stop-color="#764ba2"/>
+                        </linearGradient>
+                        <linearGradient id="gradient2" x1="6" y1="6" x2="18" y2="18">
+                            <stop offset="0%" stop-color="#f093fb"/>
+                            <stop offset="100%" stop-color="#f5576c"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <h1 class="logo-text">Voice Detection AI</h1>
+            </div>
+            <div class="header-status">
+                <span class="status-indicator" id="apiStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text">API Ready</span>
+                </span>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <h2 class="hero-title">Detect AI-Generated Voices</h2>
+            <p class="hero-subtitle">Advanced AI analysis to distinguish between human and synthetic voices with language detection and quality assessment</p>
+        </section>
+
+        <!-- Upload Section -->
+        <section class="upload-section">
+            <div class="card upload-card">
+                <div class="upload-area" id="uploadArea">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L2 19C2 20.1046 2.89543 21 4 21L20 21C21.1046 21 22 20.1046 22 19V17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <h3 class="upload-title">Drop your audio file here</h3>
+                    <p class="upload-subtitle">or click to browse</p>
+                    <p class="upload-formats">Supports MP3, WAV, FLAC, M4A</p>
+                    <input type="file" id="audioFile" accept="audio/*" hidden>
+                </div>
+
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="file-details">
+                        <svg class="file-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="file-meta">
+                            <p class="file-name" id="fileName"></p>
+                            <p class="file-size" id="fileSize"></p>
+                        </div>
+                    </div>
+                    <button class="btn-remove" id="removeFile">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="api-key-section">
+                    <label for="apiKey" class="api-key-label">
+                        <svg class="key-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15 7C15 8.65685 13.6569 10 12 10C10.3431 10 9 8.65685 9 7C9 5.34315 10.3431 4 12 4C13.6569 4 15 5.34315 15 7Z" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 10V20M12 20L9 17M12 20L15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        API Key
+                    </label>
+                    <input type="password" id="apiKey" class="api-key-input" placeholder="Enter your API key">
+                </div>
+
+                <button class="btn-primary" id="analyzeBtn" disabled>
+                    <span class="btn-text">Analyze Audio</span>
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 7L18 12M18 12L13 17M18 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <section class="loading-section" id="loadingSection" style="display: none;">
+            <div class="card loading-card">
+                <div class="loading-spinner"></div>
+                <h3 class="loading-title">Analyzing Audio...</h3>
+                <p class="loading-subtitle">Processing your audio file with advanced AI models</p>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section" id="resultsSection" style="display: none;">
+            <div class="card results-card">
+                <h3 class="results-title">Analysis Results</h3>
+                
+                <!-- Classification Result -->
+                <div class="result-main" id="resultMain">
+                    <div class="result-badge" id="resultBadge"></div>
+                    <h2 class="result-classification" id="resultClassification"></h2>
+                    <div class="result-confidence">
+                        <span class="confidence-label">Confidence:</span>
+                        <span class="confidence-value" id="confidenceValue"></span>
+                        <span class="confidence-level" id="confidenceLevel"></span>
+                    </div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon language-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
+                                <path d="M2 12H22M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <p class="metric-label">Language</p>
+                            <p class="metric-value" id="languageValue"></p>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon risk-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 9V13M12 17H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0377 2.66667 10.2679 4L3.33975 16C2.56995 17.3333 3.53223 19 5.07183 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <p class="metric-label">Deepfake Risk</p>
+                            <p class="metric-value" id="riskValue"></p>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-icon quality-icon">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="metric-content">
+                            <p class="metric-label">Audio Quality</p>
+                            <p class="metric-value" id="qualityValue"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audio Quality Details -->
+                <div class="quality-details">
+                    <h4 class="quality-title">Quality Metrics</h4>
+                    <div class="quality-metrics">
+                        <div class="quality-metric">
+                            <span class="quality-metric-label">Signal-to-Noise Ratio:</span>
+                            <span class="quality-metric-value" id="snrValue"></span>
+                        </div>
+                        <div class="quality-metric">
+                            <span class="quality-metric-label">Clipping Detected:</span>
+                            <span class="quality-metric-value" id="clippingValue"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explainability -->
+                <div class="explainability">
+                    <h4 class="explainability-title">Analysis Insights</h4>
+                    <ul class="explainability-list" id="explainabilityList"></ul>
+                </div>
+
+                <!-- Segments Timeline -->
+                <div class="segments-section" id="segmentsSection" style="display: none;">
+                    <h4 class="segments-title">Audio Segments Analysis</h4>
+                    <div class="segments-timeline" id="segmentsTimeline"></div>
+                </div>
+
+                <button class="btn-secondary" id="analyzeAnother">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 7H20M10 11V17M14 11V17M5 7L6 19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19L19 7M9 7V4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Analyze Another File
+                </button>
+            </div>
+        </section>
+
+        <!-- Error Section -->
+        <section class="error-section" id="errorSection" style="display: none;">
+            <div class="card error-card">
+                <svg class="error-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h3 class="error-title">Analysis Failed</h3>
+                <p class="error-message" id="errorMessage"></p>
+                <button class="btn-secondary" id="tryAgain">Try Again</button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-text">Powered by Advanced AI Voice Detection Technology</p>
+            <div class="footer-links">
+                <a href="/docs" class="footer-link">API Docs</a>
+                <a href="/health" class="footer-link">Status</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Use /static path for the script as well -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
