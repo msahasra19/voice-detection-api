@@ -54,7 +54,10 @@ ngrok.exe
 my_audio_base64.txt
 
 # Logs
-
+uvicorn_logs.txt
+uvicorn_errors.txt
+cf_tunnel_output.txt
+cf_tunnel_error.txt
 *.log
 
 # Testing

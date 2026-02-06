@@ -26,18 +26,35 @@ async def startup_event():
     print(f"DEBUG: Environment check - NGROK_AUTHTOKEN: {'Set' if auth_token else 'MISSING'}, NGROK_DOMAIN: {'Set' if domain else 'MISSING'}")
     
     if auth_token and domain:
-        try:
-            print(f"DEBUG: Starting cloud tunnel for domain: {domain}")
+        import asyncio
+        import time
+
+        async def setup_tunnel_with_retry():
+            local_port = int(os.environ.get("PORT", 10000))
             ngrok.set_auth_token(auth_token)
             
-            # We tunnel to the local port uvicorn is running on. 
-            # Render uses $PORT, usually 10000
-            local_port = int(os.environ.get("PORT", 10000))
-            ngrok.connect(local_port, pyngrok_config=None, name="render_tunnel", url=domain)
-            print(f"DEBUG: Tunnel established at https://{domain}")
-        except Exception as e:
-            print(f"WARNING: Could not start ngrok tunnel: {e}")
-            print("The app will still be available at the Render URL.")
+            while True:
+                try:
+                    print(f"DEBUG: Attempting to start cloud tunnel for domain: {domain}")
+                    ngrok.connect(local_port, pyngrok_config=None, name="render_tunnel", url=domain)
+                    print(f"DEBUG: Tunnel established successfully at https://{domain}")
+                    break
+                except Exception as e:
+                    err_str = str(e).lower()
+                    if "already online" in err_str or "334" in err_str:
+                        print(f"DEBUG: Tunnel domain '{domain}' is already online (likely an old build still shutting down). Retrying in 20s...")
+                        await asyncio.sleep(20)
+                    else:
+                        print(f"WARNING: Static ngrok tunnel failed with error: {e}")
+                        # If it's a fatal error (like invalid token), stop trying
+                        if "invalid" in err_str or "auth" in err_str:
+                            break
+                        await asyncio.sleep(60)
+
+        # Start the tunnel setup in the background so it doesn't block app startup
+        asyncio.create_task(setup_tunnel_with_retry())
+    else:
+        print("DEBUG: Ngrok config missing, skipping tunnel startup.")
 
 
 
