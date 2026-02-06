@@ -10,6 +10,8 @@ from .utils import load_audio_file, decode_audio_base64
 from .schemas import VoiceRequest, VoiceResponse
 
 import os
+print("DEBUG: main.py is loading...")
+print(f"DEBUG: Process environment keys: {list(os.environ.keys())}")
 from pyngrok import ngrok
 
 app = FastAPI(title="Voice Detection API", version="1.0.0")
