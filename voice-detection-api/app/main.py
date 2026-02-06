@@ -22,13 +22,18 @@ async def startup_event():
     domain = os.environ.get("NGROK_DOMAIN")
     
     if auth_token and domain:
-        print(f"DEBUG: Starting cloud tunnel for domain: {domain}")
-        ngrok.set_auth_token(auth_token)
-        # We tunnel to the local port uvicorn is running on. 
-        # On Render, the $PORT env var is used.
-        local_port = int(os.environ.get("PORT", 8000))
-        ngrok.connect(local_port, pyngrok_config=None, name="render_tunnel", url=domain)
-        print(f"DEBUG: Tunnel established at https://{domain}")
+        try:
+            print(f"DEBUG: Starting cloud tunnel for domain: {domain}")
+            ngrok.set_auth_token(auth_token)
+            
+            # We tunnel to the local port uvicorn is running on. 
+            local_port = int(os.environ.get("PORT", 10000))
+            ngrok.connect(local_port, pyngrok_config=None, name="render_tunnel", url=domain)
+            print(f"DEBUG: Tunnel established at https://{domain}")
+        except Exception as e:
+            print(f"WARNING: Could not start ngrok tunnel: {e}")
+            print("The app will still be available at the Render URL.")
+
 
 # Mount static files from the project-root-relative "static" folder.
 # This matches both local runs (uvicorn from repo root) and Render's
