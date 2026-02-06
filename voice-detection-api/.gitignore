@@ -44,8 +44,17 @@ Thumbs.db
 
 # Project Specific
 tunnel_url.txt
+audio_base64_string.txt
+tunnel.txt
+cf_tunnel.txt
+cf_tunnel_new.txt
+cloudflared.exe
+loclx.zip
+ngrok.exe
+my_audio_base64.txt
 
 # Logs
+
 *.log
 
 # Testing

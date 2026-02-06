@@ -44,23 +44,72 @@ async def root():
 
 @app.post("/predict", response_model=VoiceResponse)
 async def predict_endpoint(
-    request: VoiceRequest = Body(...),
+    request: dict = Body(...),
     x_api_key: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
 ):
     """
     Detect whether a voice is AI-generated or Human.
-    Input: Base64 encoded MP3.
+    Accepts either Base64 encoded MP3 or a URL pointing to an MP3.
     """
-    if not validate_api_key(x_api_key):
+    # Prefer X-API-Key, then Authorization header
+    token = x_api_key or authorization
+    if token and token.startswith("Bearer "):
+        token = token[7:]
+
+    if not validate_api_key(token):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing API key",
         )
 
+    # Log request for debugging (visible in server terminal)
+    print(f"DEBUG: Received request: {request}")
+
     try:
-        audio_bytes = decode_audio_base64(request.audio_data)
+        audio_bytes = None
+        
+        # Case-insensitive search for any key containing 'audio' or 'base64'
+        url = None
+        data = None
+        
+        for k, v in request.items():
+            k_lower = k.lower()
+            if "url" in k_lower:
+                url = v
+            if "data" in k_lower or "base64" in k_lower or "file" in k_lower:
+                data = v
+                
+        # If still not found, check specific keys as fallback
+        if not url:
+            url = request.get("audio_url") or request.get("url")
+        if not data:
+            data = request.get("audio_data") or request.get("audio_base64") or request.get("audioBase64") or request.get("base64") or request.get("file")
+
+        if url:
+
+            # Download from URL
+            import requests as req
+            resp = req.get(url, timeout=10)
+            resp.raise_for_status()
+            audio_bytes = resp.content
+        elif data:
+            # Handle string or potential list/dict from some tools
+            if isinstance(data, dict) and "data" in data:
+                data = data["data"]
+            audio_bytes = decode_audio_base64(str(data))
+        else:
+            # Create a summary of what was received to help debugging
+            received_info = {k: (f"Length: {len(str(v))}" if v else "Empty/None") for k, v in request.items()}
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No audio source found in request. Received data summary: {received_info}",
+            )
+
+
         audio = load_audio_file(audio_bytes)
-    except ValueError as exc:
+
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
@@ -68,6 +117,8 @@ async def predict_endpoint(
 
     result = detect_voice(audio)
     return result
+
+
 
 
 @app.get("/health")

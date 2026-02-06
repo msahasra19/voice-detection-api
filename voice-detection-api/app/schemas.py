@@ -35,7 +35,11 @@ class SegmentAnalysis(BaseModel):
     confidence: float
 
 class VoiceRequest(BaseModel):
-    audio_data: str = Field(..., description="Base64 encoded MP3 audio data")
+    audio_data: Optional[str] = Field(None, description="Base64 encoded MP3 audio data")
+    audio_url: Optional[str] = Field(None, description="URL pointing to an MP3 voice sample")
+    audio_base64: Optional[str] = Field(None, description="Alternative field for Base64 data")
+
+
 
 class VoiceResponse(BaseModel):
     classification: ClassificationResult
