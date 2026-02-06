@@ -9,3 +9,4 @@ scipy
 requests
 SpeechRecognition
 python-dotenv
+pyngrok

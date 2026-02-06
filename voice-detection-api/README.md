@@ -1,6 +1,12 @@
-## Voice Detection API
+# Voice Detection API
+
+> ⚠️ **JUDGES / EVALUATORS: IMPORTANT** ⚠️
+> If the submitted ngrok link is offline due to a tunnel reset, please use this active link to test the API:
+> **[https://holly-passport-volt-accountability.trycloudflare.com/](https://holly-passport-volt-accountability.trycloudflare.com/)**
+> (Wait a few seconds for the tunnel to connect if it shows a loading screen)
 
 A minimal FastAPI-based service that accepts audio uploads and performs a simple
+
 voice-activity style detection using placeholder logic. It is structured to be
 easy to extend with a real ML model later.
 

@@ -9,7 +9,26 @@ from .model import detect_voice
 from .utils import load_audio_file, decode_audio_base64
 from .schemas import VoiceRequest, VoiceResponse
 
+import os
+from pyngrok import ngrok
+
 app = FastAPI(title="Voice Detection API", version="1.0.0")
+
+# --- Cloud Tunnel Initialization (for Render/Heroku) ---
+@app.on_event("startup")
+async def startup_event():
+    # Only run ngrok if tokens are provided (Cloud environment)
+    auth_token = os.environ.get("NGROK_AUTHTOKEN")
+    domain = os.environ.get("NGROK_DOMAIN")
+    
+    if auth_token and domain:
+        print(f"DEBUG: Starting cloud tunnel for domain: {domain}")
+        ngrok.set_auth_token(auth_token)
+        # We tunnel to the local port uvicorn is running on. 
+        # On Render, the $PORT env var is used.
+        local_port = int(os.environ.get("PORT", 8000))
+        ngrok.connect(local_port, pyngrok_config=None, name="render_tunnel", url=domain)
+        print(f"DEBUG: Tunnel established at https://{domain}")
 
 # Mount static files from the project-root-relative "static" folder.
 # This matches both local runs (uvicorn from repo root) and Render's
