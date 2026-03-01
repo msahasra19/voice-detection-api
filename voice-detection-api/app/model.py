@@ -4,7 +4,7 @@ from .schemas import ClassificationResult, ConfidenceLevel, VoiceResponse, Audio
 from .analysis import (
     analyze_audio_quality,
     extract_features_and_explain,
-    detect_language_heuristic,
+    detect_language_ml,
     analyze_segments
 )
 
@@ -46,7 +46,7 @@ def detect_voice(audio: Dict[str, Any]) -> Dict[str, Any]:
         conf_level = ConfidenceLevel.LOW
 
     # 4. Language Detection
-    language = detect_language_heuristic(y, sample_rate)
+    language = detect_language_ml(y, sample_rate)
 
     # 5. Segment Analysis
     segments = analyze_segments(y, sample_rate, ai_score)

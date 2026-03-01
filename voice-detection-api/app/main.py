@@ -99,19 +99,19 @@ async def predict_endpoint(
     Detect whether a voice is AI-generated or Human.
     Accepts either Base64 encoded MP3 or a URL pointing to an MP3.
     """
-    # Prefer X-API-Key, then Authorization header
-    token = x_api_key or authorization
-    if token and token.startswith("Bearer "):
-        token = token[7:]
+    # API Key validation (Disabled as per user request for "no api key")
+    # token = x_api_key or authorization
+    # if token and token.startswith("Bearer "):
+    #     token = token[7:]
+    # if not validate_api_key(token):
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Invalid or missing API key",
+    #     )
 
-    if not validate_api_key(token):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or missing API key",
-        )
-
-    # Log request for debugging (visible in server terminal)
-    print(f"DEBUG: Received request: {request}")
+    # Log request summary for debugging
+    request_summary = {k: (f"<{len(str(v))} chars>" if isinstance(v, str) and len(str(v)) > 100 else v) for k, v in request.items()}
+    print(f"DEBUG: Received request: {request_summary}")
 
     try:
         audio_bytes = None
@@ -145,6 +145,7 @@ async def predict_endpoint(
             if isinstance(data, dict) and "data" in data:
                 data = data["data"]
             audio_bytes = decode_audio_base64(str(data))
+            print(f"DEBUG: Received Base64 audio. Decoded size: {len(audio_bytes)} bytes")
         else:
             # Create a summary of what was received to help debugging
             received_info = {k: (f"Length: {len(str(v))}" if v else "Empty/None") for k, v in request.items()}
@@ -155,6 +156,15 @@ async def predict_endpoint(
 
 
         audio = load_audio_file(audio_bytes)
+        print("DEBUG: Audio loaded, starting ML detection...")
+        
+        # DEBUG: Save last received audio to check quality
+        try:
+            import scipy.io.wavfile as wav
+            wav.write("debug_received.wav", audio["sample_rate"], (audio["waveform"] * 32767).astype(np.int16))
+            print("DEBUG: Saved received audio to debug_received.wav")
+        except:
+            pass
 
     except Exception as exc:
         raise HTTPException(

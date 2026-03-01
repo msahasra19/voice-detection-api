@@ -19,25 +19,29 @@ def decode_audio_base64(b64_string: str) -> bytes:
         raise ValueError("Invalid Base64 string") from exc
 
 
+import librosa
+import io
+
 def load_audio_file(raw_bytes: bytes) -> Any:
     """
-    Decode an audio file from raw bytes into a waveform array.
-
-    This uses soundfile, which supports common formats such as WAV, FLAC, OGG, etc.
-    Returns dictionary with waveform (numpy array) and sample_rate.
+    Decode an audio file from raw bytes into a waveform array using librosa.
+    Librosa is more flexible than soundfile for various formats.
     """
     if not raw_bytes:
         raise ValueError("Empty audio payload")
 
     try:
-        # soundfile.read returns (data, samplerate)
-        # We assume the file format is detectable from headers in the bytes
-        data, sample_rate = sf.read(BytesIO(raw_bytes))
-    except Exception as exc:  # pragma: no cover - defensive
-        raise ValueError("Failed to decode audio data. Please ensure the file is a valid WAV or MP3. M4A/AAC is not supported without ffmpeg.") from exc
-
-    if data is None:
-        raise ValueError("Decoded audio is empty")
-
-    return {"waveform": data, "sample_rate": sample_rate}
+        # Load raw bytes as a file-like object
+        # librosa.load will try to decoce it. If it fails, it might need ffmpeg.
+        # But for basics, it uses soundfile or audioread.
+        with io.BytesIO(raw_bytes) as audio_file:
+            # We load at original sample rate first
+            y, sr = librosa.load(audio_file, sr=None)
+            
+        if y is None or len(y) == 0:
+            raise ValueError("Decoded audio is empty")
+            
+        return {"waveform": y, "sample_rate": sr}
+    except Exception as exc:
+        raise ValueError(f"Failed to decode audio: {str(exc)}") from exc
 

@@ -1,120 +1,54 @@
-# Voice Detection API
+# Voice Detection API (ML-Based)
 
-> ⚠️ **JUDGES / EVALUATORS: IMPORTANT** ⚠️
-> If the submitted ngrok link is offline due to a tunnel reset, please use this active link to test the API:
-> **[https://holly-passport-volt-accountability.trycloudflare.com/](https://holly-passport-volt-accountability.trycloudflare.com/)**
-> (Wait a few seconds for the tunnel to connect if it shows a loading screen)
+This project has been updated to use **Local Machine Learning Models** and requires **No External API Keys**.
 
-A minimal FastAPI-based service that accepts audio uploads and performs a simple
-
-voice-activity style detection using placeholder logic. It is structured to be
-easy to extend with a real ML model later.
+### Key Features
+- **Local Language Detection**: Uses `faster-whisper` (tiny model) to detect languages (English, Hindi, Tamil, Telugu, Malayalam) locally without calling Google APIs.
+- **Local Heuristic Analysis**: Detects AI vs Human voices using advanced signal processing (Spectral Flatness, Pitch Stability, Zero Crossing Rate).
+- **Public Access**: Authentication key requirements have been removed for easier local testing and evaluation.
 
 ### Project structure
 
 ```text
 voice-detection-api/
 ├── app/
-│   ├── main.py          # API entry point (FastAPI app and routes)
-│   ├── model.py         # Voice detection logic (placeholder model)
+│   ├── main.py          # API entry point (Public /predict endpoint)
+│   ├── analysis.py      # Local ML logic (Whisper + Signal Processing)
+│   ├── model.py         # Orchestration of detection
 │   ├── utils.py         # Audio decoding helpers
-│   └── auth.py          # API key validation
+│   └── schemas.py       # Pydantic models for request/response
 ├── requirements.txt
 └── README.md
 ```
-
-> Note: Create a `.env` file yourself in the project root with at least:
->
-> ```text
-> API_KEY=change_me_to_a_secure_random_value
-> ```
 
 ### Installation
 
 From the `voice-detection-api` directory:
 
 ```bash
+# It is recommended to use a virtual environment
 python -m venv .venv
-.venv\Scripts\activate  # on Windows PowerShell: .venv\Scripts\Activate.ps1
-pip install --upgrade pip
+.venv\Scripts\activate  # Windows
 pip install -r requirements.txt
 ```
 
-### Security Setup (IMPORTANT)
-
-**Before running the API**, you must configure your API key:
-
-1. **Copy the example environment file:**
-   ```bash
-   copy .env.example .env  # Windows
-   # or
-   cp .env.example .env    # Linux/Mac
-   ```
-
-2. **Generate a secure API key:**
-   ```bash
-   python -c "import secrets; print(secrets.token_urlsafe(32))"
-   ```
-
-3. **Edit `.env` and replace `your-secret-api-key-here` with your generated key:**
-   ```text
-   API_KEY=your-actual-secure-key-here
-   ```
-
-4. **NEVER commit the `.env` file to git!** It's already in `.gitignore` to protect your secrets.
-
 ### Running the API
-
-From the `voice-detection-api` directory:
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-
-The API will be available at `http://localhost:8000`.
+*Note: On the first run, the system will automatically download the Whisper 'tiny' model (~75MB).*
 
 ### Endpoints
 
-- **`GET /health`**  
-  Simple health check. Returns:
+- **`GET /health`**: Status check.
+- **`POST /predict`**: Detect AI vs Human voice + Language.
+  - **Headers**: No API Key required.
+  - **Body**: JSON with `audio_url` or `audio_base64`.
 
-  ```json
-  { "status": "ok" }
-  ```
-
-- **`POST /detect`**  
-  Accepts an audio file and returns a naive detection result.
-
-  - **Headers**
-    - `X-API-Key`: your API key (must match `API_KEY` in the environment).
-  - **Body (multipart/form-data)**
-    - `file`: audio file (e.g. `.wav`, `.flac`, etc.).
-
-  **Example `curl` request:**
-
-  ```bash
-  curl -X POST "http://localhost:8000/detect" ^
-       -H "X-API-Key: YOUR_API_KEY_HERE" ^
-       -F "file=@path\to\audio.wav"
-  ```
-
-  Example response:
-
-  ```json
-  {
-    "filename": "audio.wav",
-    "result": {
-      "has_voice": true,
-      "score": 0.73,
-      "sample_rate": 16000.0
-    }
-  }
-  ```
-
-### Extending with a real model
-
-- Replace the placeholder logic in `app/model.py` with loading your trained
-  model (e.g. from a `.pt`, `.onnx`, or `.pkl` file).
-- Adapt `detect_voice` to accept the waveform and sample rate, run the model,
-  and return whatever structured output you need.
+### AI vs Human Detection
+The detection uses local heuristics including:
+1. **Spectral Flatness**: Detects synthetic "robotic" buzz.
+2. **Pitch Stability**: Identifies monotone synthesis.
+3. **SNR Analysis**: Identifies studio-quality audio typical of high-end AI (like ElevenLabs).
 

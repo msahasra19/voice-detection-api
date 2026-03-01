@@ -87,7 +87,7 @@ function handleDragLeave(e) {
 function handleDrop(e) {
     e.preventDefault();
     uploadArea.classList.remove('drag-over');
-    
+
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith('audio/')) {
         processFile(file);
@@ -98,32 +98,31 @@ function handleDrop(e) {
 
 function processFile(file) {
     selectedFile = file;
-    
+
     // Update UI
     fileName.textContent = file.name;
     fileSize.textContent = formatFileSize(file.size);
-    
+
     uploadArea.style.display = 'none';
     fileInfo.style.display = 'flex';
-    
+
     updateAnalyzeButton();
 }
 
 function clearFile() {
     selectedFile = null;
     audioFileInput.value = '';
-    
+
     uploadArea.style.display = 'block';
     fileInfo.style.display = 'none';
-    
+
     updateAnalyzeButton();
 }
 
 function updateAnalyzeButton() {
     const hasFile = selectedFile !== null;
-    const hasApiKey = apiKeyInput.value.trim() !== '';
-    
-    analyzeBtn.disabled = !(hasFile && hasApiKey);
+    // API Key is now optional
+    analyzeBtn.disabled = !hasFile;
 }
 
 // API Key management
@@ -147,7 +146,7 @@ async function checkAPIStatus() {
     try {
         const response = await fetch(`${API_BASE_URL}/health`);
         const data = await response.json();
-        
+
         if (data.status === 'ok') {
             updateAPIStatus(true);
         } else {
@@ -162,7 +161,7 @@ function updateAPIStatus(isOnline) {
     const statusIndicator = document.getElementById('apiStatus');
     const statusDot = statusIndicator.querySelector('.status-dot');
     const statusText = statusIndicator.querySelector('.status-text');
-    
+
     if (isOnline) {
         statusDot.style.background = 'var(--accent-green)';
         statusText.textContent = 'API Ready';
@@ -180,7 +179,7 @@ function updateAPIStatus(isOnline) {
 
 // Analyze audio
 async function analyzeAudio() {
-    if (!selectedFile || !apiKeyInput.value.trim()) {
+    if (!selectedFile) {
         return;
     }
 
@@ -193,17 +192,23 @@ async function analyzeAudio() {
     try {
         // Convert file to base64
         const base64Audio = await fileToBase64(selectedFile);
-        
+
         // Remove data URL prefix if present
         const base64Data = base64Audio.split(',')[1] || base64Audio;
 
-        // Make API request
+        // Make API request with optional key
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+
+        const apiKey = apiKeyInput.value.trim();
+        if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+        }
+
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-Key': apiKeyInput.value.trim()
-            },
+            headers: headers,
             body: JSON.stringify({
                 audio_data: base64Data
             })
@@ -219,7 +224,7 @@ async function analyzeAudio() {
 
     } catch (error) {
         console.error('Analysis error:', error);
-        showError(error.message || 'Failed to analyze audio. Please check your API key and try again.');
+        showError(error.message || 'Failed to analyze audio. Please try again.');
     }
 }
 
@@ -232,7 +237,7 @@ function displayResults(data) {
     const isAI = data.classification === 'AI_GENERATED';
     const resultBadge = document.getElementById('resultBadge');
     const resultClassification = document.getElementById('resultClassification');
-    
+
     resultBadge.textContent = isAI ? '🤖 AI Detected' : '👤 Human Voice';
     resultBadge.className = `result-badge ${isAI ? 'ai' : 'human'}`;
     resultClassification.textContent = isAI ? 'AI-Generated Voice' : 'Human Voice';
@@ -240,17 +245,17 @@ function displayResults(data) {
     // Confidence
     const confidencePercent = (data.confidence_score * 100).toFixed(1);
     document.getElementById('confidenceValue').textContent = `${confidencePercent}%`;
-    
+
     const confidenceLevel = document.getElementById('confidenceLevel');
     confidenceLevel.textContent = data.confidence_level;
     confidenceLevel.className = `confidence-level ${data.confidence_level.toLowerCase()}`;
 
     // Metrics
     document.getElementById('languageValue').textContent = data.detected_language;
-    
+
     const riskPercent = (data.deepfake_risk_score * 100).toFixed(1);
     document.getElementById('riskValue').textContent = `${riskPercent}%`;
-    
+
     document.getElementById('qualityValue').textContent = data.audio_quality.quality_check;
 
     // Quality details
@@ -270,23 +275,23 @@ function displayResults(data) {
     if (data.segments && data.segments.length > 0) {
         const segmentsSection = document.getElementById('segmentsSection');
         const segmentsTimeline = document.getElementById('segmentsTimeline');
-        
+
         segmentsSection.style.display = 'block';
         segmentsTimeline.innerHTML = '';
-        
+
         data.segments.forEach(segment => {
             const segmentItem = document.createElement('div');
             segmentItem.className = 'segment-item';
-            
+
             const isSegmentAI = segment.label === 'AI_GENERATED';
             const segmentConfidence = (segment.confidence * 100).toFixed(1);
-            
+
             segmentItem.innerHTML = `
                 <span class="segment-time">${segment.start_time.toFixed(2)}s - ${segment.end_time.toFixed(2)}s</span>
                 <span class="segment-label ${isSegmentAI ? 'ai' : 'human'}">${isSegmentAI ? 'AI' : 'Human'}</span>
                 <span class="segment-confidence">${segmentConfidence}%</span>
             `;
-            
+
             segmentsTimeline.appendChild(segmentItem);
         });
     } else {
@@ -323,10 +328,10 @@ function fileToBase64(file) {
 
 function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
-    
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
+
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }

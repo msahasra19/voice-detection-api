@@ -1,5 +1,7 @@
 import numpy as np
 import librosa
+import joblib
+import os
 from typing import List, Dict, Any, Tuple
 from .schemas import ClassificationResult, SupportedLanguage, AudioQualityScore, SegmentAnalysis
 
@@ -45,66 +47,92 @@ def analyze_audio_quality(y: np.ndarray, sr: int) -> Dict[str, Any]:
         "quality_check": quality
     }
 
+def extract_ml_features(y: np.ndarray, sr: int) -> np.ndarray:
+    """
+    Extract features consistent with the training script.
+    """
+    # 1. MFCCs
+    mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+    mfccs_mean = np.mean(mfccs.T, axis=0)
+    mfccs_std = np.std(mfccs.T, axis=0)
+    
+    # 2. Spectral Flatness
+    flatness = librosa.feature.spectral_flatness(y=y)
+    flatness_mean = np.mean(flatness)
+    
+    # 3. Zero Crossing Rate
+    zcr = librosa.feature.zero_crossing_rate(y)
+    zcr_mean = np.mean(zcr)
+    
+    # 4. Spectral Contrast
+    contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
+    contrast_mean = np.mean(contrast.T, axis=0)
+    
+    return np.hstack([mfccs_mean, mfccs_std, flatness_mean, zcr_mean, contrast_mean])
+
 def extract_features_and_explain(y: np.ndarray, sr: int) -> Tuple[List[str], float]:
     """
     Extract features to determine if AI or Human, and return explanations.
-    Returns: (Reasons, AI_Probability_Score)
+    Uses a trained Random Forest model if available, otherwise falls back to heuristics.
     """
     reasons = []
-    
-    # Feature 1: Spectral Flatness (Robotic/Synthetic voices tend to be flatter)
-    flatness = np.mean(librosa.feature.spectral_flatness(y=y))
-    
-    # Feature 2: Pitch Stability / Variance
-    # AI models sometimes have "too perfect" or "too jittery" pitch depending on quality
-    pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
-    # Select pitches with magnitude
-    pitch_vals = pitches[magnitudes > np.median(magnitudes)]
-    if len(pitch_vals) > 0:
-        pitch_std = np.std(pitch_vals)
-    else:
-        pitch_std = 0
-        
-    # Feature 3: Zero Crossing Rate (detects noise/fricatives)
-    zcr = np.mean(librosa.feature.zero_crossing_rate(y))
-
-    # Heuristic Logic (Simulation of a Model)
-    # IMPORTANT: Real production needs a trained Deep Learning model here.
-    # We are using signal processing heuristics to "detect" artifacts common in synthesis.
-    
     ai_score = 0.0
     
-    # Check Flatness
-    if flatness > 0.2: # Threshold for 'buzzy' or 'flat' sound
+    # Check if a trained model exists
+    model_path = os.path.join(os.path.dirname(__file__), "voice_model.joblib")
+    
+    if os.path.exists(model_path):
+        try:
+            clf = joblib.load(model_path)
+            features = extract_ml_features(y, sr)
+            # Reshape for single sample
+            features = features.reshape(1, -1)
+            
+            # Get probability of class 1 (AI)
+            probs = clf.predict_proba(features)[0]
+            ai_score = float(probs[1])
+            
+            reasons.append(f"ML Model Analysis: {ai_score*100:.1f}% AI probability.")
+            if ai_score > 0.8:
+                reasons.append("Strong patterns of synthetic generation detected by neural classifier.")
+            elif ai_score < 0.2:
+                reasons.append("Vocal characteristics strongly match natural human speech patterns.")
+            
+            return reasons, ai_score
+        except Exception as e:
+            print(f"DEBUG: ML model inference failed: {e}. Falling back to heuristics.")
+            reasons.append("ML inference failed, using fallback heuristics.")
+
+    # --- HEURISTIC FALLBACK ---
+    # Feature 1: Spectral Flatness
+    flatness = np.mean(librosa.feature.spectral_flatness(y=y))
+    
+    # Feature 2: Pitch Stability
+    pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
+    pitch_vals = pitches[magnitudes > np.median(magnitudes)]
+    pitch_std = np.std(pitch_vals) if len(pitch_vals) > 0 else 0
+        
+    zcr = np.mean(librosa.feature.zero_crossing_rate(y))
+
+    if flatness > 0.2:
         ai_score += 0.4
         reasons.append("Abnormally high spectral flatness (robotic characteristics).")
     
-    # Check Pitch
-    if pitch_std < 20: # Monotone
+    if pitch_std < 20: 
         ai_score += 0.3
         reasons.append("Unnatural pitch stability (monotone synthesis detected).")
-    elif pitch_std > 500: # Random noise masquerading as speech
-        # Base score is low because this can happen in noisy human audio too
+    elif pitch_std > 500:
         ai_score += 0.2
         reasons.append("Erratic pitch variance inconsistent with natural speech.")
 
-    # Audio Silence/Gaps
+    # Silence gaps
     non_silent_intervals = librosa.effects.split(y, top_db=20)
     silence_ratio = 1.0 - (np.sum([end - start for start, end in non_silent_intervals]) / len(y))
-    
     if silence_ratio > 0.8:
         reasons.append("Excessive silence detected.")
         ai_score = max(0.0, ai_score - 0.2)
-
-    # Base score adjustment
-    if zcr < 0.02:
-        reasons.append("Low frequency variation (muffled/filtered signal).")
     
-    # NEW: High Quality / Studio Quality Penalty
-    # AI generators (ElevenLabs) produce near-perfect studio audio (High SNR).
-    # Real user uploads often have background noise.
-    
-    # Calculate simple SNR context locally
+    # Studio Quality check
     s_full = np.abs(librosa.stft(y))
     rms = librosa.feature.rms(S=s_full)[0]
     if len(rms) > 0:
@@ -114,110 +142,109 @@ def extract_features_and_explain(y: np.ndarray, sr: int) -> Tuple[List[str], flo
     else:
         local_snr = 0
 
-    if "Erratic pitch variance" in "".join(reasons):
-        # AI typically has High SNR (> 30dB) + Erratic Pitch.
-        # Noisy Human audio (< 30dB) also has Erratic Pitch due to noise.
-        
-        if local_snr > 38: # Higher threshold (Studio Quality)
-             # Major boost for clean AI
-             ai_score += 0.5
-             reasons.append("High-fidelity studio quality detected (common in AI).")
-        elif local_snr > 30:
-             # Moderate boost
-             ai_score += 0.3
- 
+    if ai_score > 0.2 and local_snr > 38: # Higher threshold (Studio Quality)
+         ai_score += 0.5
+         reasons.append("High-fidelity studio quality detected (common in AI).")
 
-    # Default to Human if no strong AI signs
     if ai_score == 0.0:
         reasons.append("Natural prosody and spectral characteristics observed.")
     
     return reasons, min(ai_score, 1.0)
 
-import speech_recognition as sr
-import soundfile as sf
-import io
+from faster_whisper import WhisperModel
+import os
 
+class LocalMLModels:
+    _instance = None
+    _whisper_model = None
 
-def detect_language_heuristic(y: np.ndarray, sr_rate: int) -> SupportedLanguage:
-    """
-    Attempt to detect language using Google Speech Recognition.
-    Probs through supported languages and returns the one with highest confidence & linguistic validity.
-    """
-    recognizer = sr.Recognizer()
-    
-    # Minimal Stop Words / Common Tokens for Validation
-    STOP_WORDS = {
-        SupportedLanguage.ENGLISH: {"the", "is", "a", "to", "of", "in", "and", "you", "that", "it", "he", "was", "for", "on", "are", "as", "with", "his", "they", "i", "at", "be", "this", "have", "from"},
-        SupportedLanguage.HINDI: {"है", "हैं", "का", "की", "के", "और", "से", "में", "को", "पर", "इस", "कि", "जो", "नहीं", "तो", "ही", "एक", "मैं", "तुम", "हम", "वे", "था", "थी", "थे"},
-        SupportedLanguage.TAMIL: {"நான்", "என்", "என்னை", "அவன்", "அவள்", "அது", "இது", "அந்த", "இந்த", "ஒரு", "இல்லை", "உள்ளது", "வேண்டும்", "என்று", "ஆகும்", "ஆனால்", "அல்லது"},
-        SupportedLanguage.TELUGU: {"నేను", "నా", "నన్ను", "అతను", "ఆమె", "అది", "ఇది", "ఆ", "ఈ", "ఒక", "కాదు", "ఉంది", "కావాలి", "అని", "కానీ", "లేదా", "మరియు"},
-        SupportedLanguage.MALAYALAM: {"ഞാൻ", "എന്റെ", "എന്നെ", "അവൻ", "അവൾ", "അത്", "ഇത്", "ഒരു", "അല്ല", "ഉണ്ട്", "வேண்டும்", "എന്ന്", "ആണ്", "പക്ഷേ", "അല്ലെങ്കിൽ"}
-    }
-    
-    try:
-        wav_buffer = io.BytesIO()
-        sf.write(wav_buffer, y, sr_rate, format='WAV')
-        wav_buffer.seek(0)
-        
-        with sr.AudioFile(wav_buffer) as source:
-            audio_data = recognizer.record(source)
-            
-        candidates = [
-            ("en-IN", SupportedLanguage.ENGLISH),
-            ("ta-IN", SupportedLanguage.TAMIL),
-            ("hi-IN", SupportedLanguage.HINDI),
-            ("ml-IN", SupportedLanguage.MALAYALAM),
-            ("te-IN", SupportedLanguage.TELUGU),
-        ]
-        
-        best_lang = SupportedLanguage.ENGLISH
-        max_score = 0.0 
-        
-        results = []
-
-        for code, lang_enum in candidates:
+    @classmethod
+    def get_whisper(cls):
+        if cls._whisper_model is None:
+            # Using 'base' for faster loading on local machines
+            print("DEBUG: Initializing faster-whisper 'base' model on CPU...")
             try:
-                response = recognizer.recognize_google(audio_data, language=code, show_all=True)
-                
-                if isinstance(response, dict) and 'alternative' in response:
-                    alt = response['alternative'][0]
-                    confidence = alt.get('confidence', 0.0)
-                    transcript = alt.get('transcript', "")
-                    
-                    if 'confidence' not in alt and transcript:
-                         confidence = 0.85 
+                cls._whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
+                print("DEBUG: faster-whisper base model loaded successfully.")
+            except Exception as e:
+                print(f"DEBUG: Error loading faster-whisper model: {e}")
+                raise
+        return cls._whisper_model
 
-                    # Stop Word Validation
-                    found_stop_words = 0
-                    tokens = set(transcript.lower().split()) if lang_enum == SupportedLanguage.ENGLISH else set(transcript.split())
-                    
-                    if lang_enum in STOP_WORDS:
-                        relevant_stops = STOP_WORDS[lang_enum]
-                        match_count = sum(1 for t in tokens if t in relevant_stops)
-                        
-                        print(f"DEBUG: {code} -> Match: {match_count} words. Text: {transcript[:50]}...")
-                        
-                        # Dynamic Boost based on linguistic validity
-                        # More matches = Higher confidence that this is the correct language
-                        if match_count > 0:
-                            confidence += (0.1 * match_count) 
-                            
-                    results.append((lang_enum, confidence, transcript))
-                    
-                    if confidence > max_score:
-                        max_score = confidence
-                        best_lang = lang_enum
-                        
-            except (sr.UnknownValueError, sr.RequestError):
-                print(f"DEBUG: {code} -> Failed")
-                continue
+def detect_language_ml(y: np.ndarray, sr_rate: int) -> SupportedLanguage:
+    """
+    Detect language using a local Whisper ML model.
+    Resamples to 16kHz and normalizes audio for better accuracy.
+    """
+    try:
+        model = LocalMLModels.get_whisper()
         
-        if not results:
-             return SupportedLanguage.ENGLISH
-             
-        return best_lang
+        # 1. Ensure 16kHz
+        if sr_rate != 16000:
+            print(f"DEBUG: Resampling from {sr_rate}Hz to 16000Hz.")
+            y = librosa.resample(y, orig_sr=sr_rate, target_sr=16000)
+            sr_rate = 16000
 
-    except Exception:
+        # 2. Normalize Volume (important for Whisper accuracy)
+        max_val = np.abs(y).max()
+        if max_val > 0:
+            y = y / max_val
+            print("DEBUG: Audio normalized.")
+
+        # Whisper expects float32
+        if y.dtype != np.float32:
+            y = y.astype(np.float32)
+
+        # 3. Detect Language
+        # We provide an initial prompt to bias the model towards the target languages
+        initial_p = "This audio contains speech in English, Hindi, or Telugu."
+        
+        segments_gen, info = model.transcribe(
+            y, 
+            beam_size=10, 
+            vad_filter=True, 
+            initial_prompt=initial_p,
+            language=None
+        )
+        
+        detected_code = info.language
+        prob = info.language_probability
+        
+        # Consume first few segments to get a transcript for debug
+        segments = []
+        for i, s in enumerate(segments_gen):
+            segments.append(s.text)
+            if i > 5: break # Don't consume everything if it's long
+        
+        transcript = " ".join(segments).strip()
+        print(f"DEBUG: ML Result -> Lang: {detected_code}, Prob: {prob:.4f}, Sample Transcript: '{transcript}'")
+
+        # Map Whisper codes to our SupportedLanguage enum
+        mapping = {
+            "en": SupportedLanguage.ENGLISH,
+            "ta": SupportedLanguage.TAMIL,
+            "hi": SupportedLanguage.HINDI,
+            "ml": SupportedLanguage.MALAYALAM,
+            "te": SupportedLanguage.TELUGU,
+            "kn": SupportedLanguage.TELUGU,
+            "mr": SupportedLanguage.HINDI,
+            "bn": SupportedLanguage.HINDI,
+            "pa": SupportedLanguage.HINDI,
+            "gu": SupportedLanguage.HINDI
+        }
+        
+        # If confidence is extremely low (< 0.1), it's likely noise or unidentifiable
+        if prob < 0.1:
+            print("DEBUG: Language probability too low, defaulting to English.")
+            return SupportedLanguage.ENGLISH
+
+        if detected_code in mapping:
+            return mapping[detected_code]
+            
+        return SupportedLanguage.ENGLISH
+
+    except Exception as e:
+        print(f"DEBUG: Local ML language detection failed: {e}")
         return SupportedLanguage.ENGLISH
 
 
