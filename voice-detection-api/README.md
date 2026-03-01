@@ -1,34 +1,41 @@
-# Voice Detection API (ML-Based)
+# Voice Detection ML (Local Processing)
 
-This project has been updated to use **Local Machine Learning Models** and requires **No External API Keys**.
+This repository contains a local, machine learning-based API for detecting AI-generated vs. Human voices and identifying languages. It uses the `faster-whisper` model and custom signal processing heuristics, requiring **No External API Keys**.
 
 ### Key Features
-- **Local Language Detection**: Uses `faster-whisper` (tiny model) to detect languages (English, Hindi, Tamil, Telugu, Malayalam) locally without calling Google APIs.
-- **Local Heuristic Analysis**: Detects AI vs Human voices using advanced signal processing (Spectral Flatness, Pitch Stability, Zero Crossing Rate).
-- **Public Access**: Authentication key requirements have been removed for easier local testing and evaluation.
+- **Local Language Detection**: Uses `faster-whisper` (tiny model) to detect languages (English, Hindi, Tamil, Telugu, Malayalam) locally.
+- **AI vs Human Detection**: 
+    - **Heuristic Analysis**: Spectral Flatness, Pitch Stability, and SNR analysis.
+    - **Trained Model**: Extensible Random Forest classifier for audio feature extraction (MFCCs, Spectral Contrast).
+- **Public Access**: Authentication key requirements removed for streamlined development and testing.
 
-### Project structure
+### Project Structure
 
 ```text
 voice-detection-api/
 ├── app/
 │   ├── main.py          # API entry point (Public /predict endpoint)
-│   ├── analysis.py      # Local ML logic (Whisper + Signal Processing)
+│   ├── analysis.py      # Core ML logic (Whisper + Signal Processing)
 │   ├── model.py         # Orchestration of detection
 │   ├── utils.py         # Audio decoding helpers
-│   └── schemas.py       # Pydantic models for request/response
+│   └── voice_model.joblib # Trained Random Forest model (if applicable)
+├── training/
+│   ├── train_model.py   # Training script for AI vs Human detection
+│   └── download_dataset.py # Helper to prepare training data
 ├── requirements.txt
 └── README.md
 ```
 
 ### Installation
 
-From the `voice-detection-api` directory:
+From the project root:
 
 ```bash
-# It is recommended to use a virtual environment
+# Recommended: Create a virtual environment
 python -m venv .venv
 .venv\Scripts\activate  # Windows
+# source .venv/bin/activate # Linux/Mac
+
 pip install -r requirements.txt
 ```
 
@@ -43,12 +50,21 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 - **`GET /health`**: Status check.
 - **`POST /predict`**: Detect AI vs Human voice + Language.
-  - **Headers**: No API Key required.
   - **Body**: JSON with `audio_url` or `audio_base64`.
 
-### AI vs Human Detection
-The detection uses local heuristics including:
-1. **Spectral Flatness**: Detects synthetic "robotic" buzz.
-2. **Pitch Stability**: Identifies monotone synthesis.
-3. **SNR Analysis**: Identifies studio-quality audio typical of high-end AI (like ElevenLabs).
+### Training the Model
+
+To improve AI vs Human detection accuracy, you can train the local classifier:
+1. Place your audio samples in `dataset/human/` and `dataset/ai/`.
+2. Run the training script:
+   ```bash
+   python training/train_model.py
+   ```
+3. The new model will be saved to `app/voice_model.joblib`.
+
+### AI vs Human Detection Heuristics
+1. **Spectral Flatness**: Identifies the "noisy" nature of synthesis.
+2. **Pitch Stability**: Detects the unnatural consistency of AI voices.
+3. **MFCC Analysis**: Captures timbre differences between human vocal tracts and synthetic vocoders.
+
 
