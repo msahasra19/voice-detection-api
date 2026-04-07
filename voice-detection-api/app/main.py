@@ -5,7 +5,7 @@ from typing import Annotated
 from pathlib import Path
 
 from .auth import validate_api_key
-from .model import detect_voice
+from .ml_model import detect_voice
 from .utils import load_audio_file, decode_audio_base64
 from .schemas import VoiceRequest, VoiceResponse
 

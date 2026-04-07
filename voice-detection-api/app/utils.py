@@ -35,8 +35,7 @@ def load_audio_file(raw_bytes: bytes) -> Any:
         # librosa.load will try to decoce it. If it fails, it might need ffmpeg.
         # But for basics, it uses soundfile or audioread.
         with io.BytesIO(raw_bytes) as audio_file:
-            # We load at original sample rate first
-            y, sr = librosa.load(audio_file, sr=None)
+            y, sr = librosa.load(audio_file, sr=16000)
             
         if y is None or len(y) == 0:
             raise ValueError("Decoded audio is empty")
