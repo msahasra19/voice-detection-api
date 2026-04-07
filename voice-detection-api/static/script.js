@@ -238,17 +238,9 @@ function displayResults(data) {
     const resultBadge = document.getElementById('resultBadge');
     const resultClassification = document.getElementById('resultClassification');
 
-    resultBadge.textContent = isAI ? '🤖 AI Detected' : '👤 Human Voice';
-    resultBadge.className = `result-badge ${isAI ? 'ai' : 'human'}`;
-    resultClassification.textContent = isAI ? 'AI-Generated Voice' : 'Human Voice';
+    resultBadge.style.display = 'none'; // Hide the redundant badge
+    resultClassification.textContent = isAI ? 'AI' : 'Human';
 
-    // Confidence
-    const confidencePercent = (data.confidence_score * 100).toFixed(1);
-    document.getElementById('confidenceValue').textContent = `${confidencePercent}%`;
-
-    const confidenceLevel = document.getElementById('confidenceLevel');
-    confidenceLevel.textContent = data.confidence_level;
-    confidenceLevel.className = `confidence-level ${data.confidence_level.toLowerCase()}`;
 
     // Metrics
     document.getElementById('languageValue').textContent = data.detected_language;
@@ -262,40 +254,132 @@ function displayResults(data) {
     document.getElementById('snrValue').textContent = `${data.audio_quality.snr.toFixed(2)} dB`;
     document.getElementById('clippingValue').textContent = data.audio_quality.clipping_detected ? 'Yes' : 'No';
 
-    // Explainability
-    const explainabilityList = document.getElementById('explainabilityList');
-    explainabilityList.innerHTML = '';
-    data.explainability.forEach(reason => {
-        const li = document.createElement('li');
-        li.textContent = reason;
-        explainabilityList.appendChild(li);
-    });
+    // Advanced XAI
+    const xai = data.explainability;
+
+    // 1. Counterfactual
+    document.getElementById('counterfactualText').textContent = xai.counterfactual_explanation;
+
+    // Helper for Bar Charts (SHAP & LIME)
+    // Updated for Vertical Contribution Dashboard
+    function renderBarChart(containerId, dataDict) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        container.className = 'xai-vertical-chart';
+
+        // Add the horizontal zero baseline
+        const zeroLine = document.createElement('div');
+        zeroLine.className = 'xai-zero-line';
+        container.appendChild(zeroLine);
+
+        const values = Object.values(dataDict);
+        const maxAbs = values.length > 0 ? Math.max(...values.map(v => Math.abs(v))) : 1.0;
+        const scale = maxAbs > 0 ? maxAbs : 1.0;
+
+        for (const [key, value] of Object.entries(dataDict)) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'xai-vertical-bar-wrapper';
+
+            const isPositive = value >= 0;
+            const bar = document.createElement('div');
+            bar.className = `xai-v-bar ${isPositive ? 'positive' : 'negative'}`;
+
+            // Each side (top/bottom) is 50% of chart height.
+            // Scale bar height to max absolute contribution.
+            const hPercent = (Math.abs(value) / scale * 45).toFixed(1); // 45% of total chart height (90% of a side)
+
+            const valueLabel = document.createElement('div');
+            valueLabel.className = `xai-v-value ${isPositive ? 'positive' : 'negative'}`;
+            valueLabel.textContent = `${(Math.abs(value) * 100).toFixed(1)}%`;
+
+            const nameLabel = document.createElement('div');
+            nameLabel.className = 'xai-v-label';
+            nameLabel.textContent = key;
+            nameLabel.title = key;
+
+            wrapper.appendChild(bar);
+            wrapper.appendChild(valueLabel);
+            wrapper.appendChild(nameLabel);
+            container.appendChild(wrapper);
+
+            // Animate growth
+            setTimeout(() => {
+                bar.style.height = `${hPercent}%`;
+            }, 100);
+        }
+    }
+
+    // Render SHAP & LIME
+    renderBarChart('shapContainer', xai.shap_results);
+    renderBarChart('limeContainer', xai.lime_results);
+
+    // 4. Grad-CAM Spectrogram approximations
+    const gradcamContainer = document.getElementById('gradcamContainer');
+    gradcamContainer.innerHTML = '';
+    if (xai.gradcam_regions && xai.gradcam_regions.length > 0) {
+        xai.gradcam_regions.forEach(region => {
+            const item = document.createElement('div');
+            item.className = 'gradcam-item';
+            item.innerHTML = `
+                <div>
+                    <strong>Time:</strong> ${region.start.toFixed(2)}s - ${region.end.toFixed(2)}s<br>
+                    <span class="xai-subtitle">${region.reason}</span>
+                </div>
+                <div>
+                    <strong>Intensity:</strong> ${(region.intensity * 100).toFixed(1)}%
+                </div>
+            `;
+            gradcamContainer.appendChild(item);
+        });
+    } else {
+        gradcamContainer.innerHTML = '<p class="xai-subtitle">No significant anomalies detected.</p>';
+    }
+
+    // 5. Attention Segments
+    const attentionTimeline = document.getElementById('attentionTimeline');
+    attentionTimeline.innerHTML = '';
+    if (xai.attention_segments && xai.attention_segments.length > 0) {
+        xai.attention_segments.forEach(seg => {
+            const item = document.createElement('div');
+            item.className = 'segment-item';
+            item.innerHTML = `
+                <span class="segment-time">${seg.start.toFixed(2)}s - ${seg.end.toFixed(2)}s</span>
+                <span class="segment-label ai">High Attention</span>
+                <span class="segment-confidence">Score: ${(seg.importance_score * 100).toFixed(1)}%</span>
+            `;
+            attentionTimeline.appendChild(item);
+        });
+    } else {
+        attentionTimeline.innerHTML = '<p class="xai-subtitle">Evaluation distributed evenly across audio.</p>';
+    }
 
     // Segments
     if (data.segments && data.segments.length > 0) {
         const segmentsSection = document.getElementById('segmentsSection');
         const segmentsTimeline = document.getElementById('segmentsTimeline');
 
-        segmentsSection.style.display = 'block';
-        segmentsTimeline.innerHTML = '';
+        if (segmentsSection) segmentsSection.style.display = 'block';
+        if (segmentsTimeline) {
+            segmentsTimeline.innerHTML = '';
+            data.segments.forEach(segment => {
+                const segmentItem = document.createElement('div');
+                segmentItem.className = 'segment-item';
 
-        data.segments.forEach(segment => {
-            const segmentItem = document.createElement('div');
-            segmentItem.className = 'segment-item';
+                const isSegmentAI = segment.label === 'AI_GENERATED';
+                const segmentConfidence = (segment.confidence * 100).toFixed(1);
 
-            const isSegmentAI = segment.label === 'AI_GENERATED';
-            const segmentConfidence = (segment.confidence * 100).toFixed(1);
+                segmentItem.innerHTML = `
+                    <span class="segment-time">${segment.start_time.toFixed(2)}s - ${segment.end_time.toFixed(2)}s</span>
+                    <span class="segment-label ${isSegmentAI ? 'ai' : 'human'}">${isSegmentAI ? 'AI' : 'Human'}</span>
+                    <span class="segment-confidence">${segmentConfidence}%</span>
+                `;
 
-            segmentItem.innerHTML = `
-                <span class="segment-time">${segment.start_time.toFixed(2)}s - ${segment.end_time.toFixed(2)}s</span>
-                <span class="segment-label ${isSegmentAI ? 'ai' : 'human'}">${isSegmentAI ? 'AI' : 'Human'}</span>
-                <span class="segment-confidence">${segmentConfidence}%</span>
-            `;
-
-            segmentsTimeline.appendChild(segmentItem);
-        });
+                segmentsTimeline.appendChild(segmentItem);
+            });
+        }
     } else {
-        document.getElementById('segmentsSection').style.display = 'none';
+        const segmentsSection = document.getElementById('segmentsSection');
+        if (segmentsSection) segmentsSection.style.display = 'none';
     }
 }
 

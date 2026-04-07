@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <!-- Use /static paths so FastAPI's static mount serves these correctly in deployment -->
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=2.0">
 </head>
 
 <body>
@@ -138,11 +138,7 @@
                 <div class="result-main" id="resultMain">
                     <div class="result-badge" id="resultBadge"></div>
                     <h2 class="result-classification" id="resultClassification"></h2>
-                    <div class="result-confidence">
-                        <span class="confidence-label">Confidence:</span>
-                        <span class="confidence-value" id="confidenceValue"></span>
-                        <span class="confidence-level" id="confidenceLevel"></span>
-                    </div>
+
                 </div>
 
                 <!-- Metrics Grid -->
@@ -210,15 +206,51 @@
                     </div>
                 </div>
 
-                <!-- Explainability -->
-                <div class="explainability">
-                    <h4 class="explainability-title">Analysis Insights</h4>
-                    <ul class="explainability-list" id="explainabilityList"></ul>
+                <!-- Advanced Explainability (XAI) -->
+                <div class="xai-section">
+                    <h3 class="xai-main-title">Explainable AI (XAI) Analysis</h3>
+
+                    <!-- Counterfactual -->
+                    <div class="xai-card counterfactual-card">
+                        <h4 class="xai-title">Counterfactual Explanation</h4>
+                        <p id="counterfactualText" class="xai-text"></p>
+                    </div>
+
+                    <div class="xai-stack">
+                        <!-- SHAP Results -->
+                        <div class="xai-card">
+                            <h4 class="xai-title">SHAP Feature Impact</h4>
+                            <p class="xai-subtitle">How specific acoustic features pushed the prediction</p>
+                            <div class="xai-chart-container" id="shapContainer"></div>
+                        </div>
+
+                        <!-- LIME Results -->
+                        <div class="xai-card">
+                            <h4 class="xai-title">LIME Local Explanation</h4>
+                            <p class="xai-subtitle">Local mathematical boundaries affecting this audio</p>
+                            <div class="xai-chart-container" id="limeContainer"></div>
+                        </div>
+                    </div>
+
+                    <!-- Spectrogram / Grad-CAM -->
+                    <div class="xai-card">
+                        <h4 class="xai-title">Spectrogram Saliency (Grad-CAM approx)</h4>
+                        <p class="xai-subtitle">Regions of extreme spectral flux driving the model decision</p>
+                        <div class="gradcam-container" id="gradcamContainer"></div>
+                    </div>
+
+                    <!-- Attention Segments -->
+                    <div class="xai-card">
+                        <h4 class="xai-title">Important Audio Segments (Attention Heatmap)</h4>
+                        <p class="xai-subtitle">Time chunks with highest RMS energy anomaly</p>
+                        <div class="segments-timeline" id="attentionTimeline"></div>
+                    </div>
                 </div>
 
-                <!-- Segments Timeline -->
+                <!-- Audio Segments Section -->
                 <div class="segments-section" id="segmentsSection" style="display: none;">
-                    <h4 class="segments-title">Audio Segments Analysis</h4>
+                    <h3 class="segments-title">Detailed Segment Analysis</h3>
+                    <p class="xai-subtitle">Analysis of 1-second chunks across the entire recording</p>
                     <div class="segments-timeline" id="segmentsTimeline"></div>
                 </div>
 
@@ -258,7 +290,7 @@
     </div>
 
     <!-- Use /static path for the script as well -->
-    <script src="/static/script.js"></script>
+    <script src="/static/script.js?v=2.0"></script>
 </body>
 
 </html>

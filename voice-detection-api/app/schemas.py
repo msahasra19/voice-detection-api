@@ -1,3 +1,4 @@
+from typing import Dict, Any, List
 from typing import List, Optional
 from enum import Enum
 from pydantic import BaseModel, Field
@@ -12,11 +13,11 @@ class ConfidenceLevel(str, Enum):
     HIGH = "HIGH"
 
 class SupportedLanguage(str, Enum):
-    TAMIL = "Tamil"
     ENGLISH = "English"
+    TAMIL = "Tamil"
     HINDI = "Hindi"
-    MALAYALAM = "Malayalam"
     TELUGU = "Telugu"
+    SPANISH = "Spanish"
 
 class AudioQualityScore(str, Enum):
     LOW = "LOW"
@@ -41,12 +42,21 @@ class VoiceRequest(BaseModel):
 
 
 
+class ExplainabilityData(BaseModel):
+    shap_results: Dict[str, float] = Field(..., description="SHAP feature importances")
+    lime_results: Dict[str, float] = Field(..., description="LIME local explanations")
+    gradcam_regions: List[Dict[str, Any]] = Field(..., description="High saliency regions in spectrogram")
+    attention_segments: List[Dict[str, Any]] = Field(..., description="Critical time chunks affecting prediction")
+    counterfactual_explanation: str = Field(..., description="Minimal change needed to flip prediction")
+
 class VoiceResponse(BaseModel):
     classification: ClassificationResult
     confidence_score: float = Field(..., ge=0.0, le=1.0)
+    human_confidence: float = Field(..., ge=0.0, le=1.0)
+    ai_confidence: float = Field(..., ge=0.0, le=1.0)
     confidence_level: ConfidenceLevel
     deepfake_risk_score: float = Field(..., ge=0.0, le=1.0)
     detected_language: SupportedLanguage
     audio_quality: AudioQuality
-    explainability: List[str] = Field(..., description="Human-readable reasons for classification")
+    explainability: ExplainabilityData
     segments: List[SegmentAnalysis] = Field(default_factory=list)
