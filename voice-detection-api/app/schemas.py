@@ -1,5 +1,4 @@
-from typing import Dict, Any, List
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from enum import Enum
 from pydantic import BaseModel, Field
 
@@ -14,49 +13,65 @@ class ConfidenceLevel(str, Enum):
 
 class SupportedLanguage(str, Enum):
     ENGLISH = "English"
-    TAMIL = "Tamil"
     HINDI = "Hindi"
+    TAMIL = "Tamil"
     TELUGU = "Telugu"
-    SPANISH = "Spanish"
+    MALAYALAM = "Malayalam"
+    KANNADA = "Kannada"
+    MARATHI = "Marathi"
+    BENGALI = "Bengali"
+    GUJARATI = "Gujarati"
+    PUNJABI = "Punjabi"
+    OTHER = "Other"
 
 class AudioQualityScore(str, Enum):
     LOW = "LOW"
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
 
-class AudioQuality(BaseModel):
-    snr: float = Field(..., description="Signal-to-Noise Ratio (dB)")
-    clipping_detected: bool = Field(..., description="Whether audio clipping is detected")
-    quality_check: AudioQualityScore = Field(..., description="Overall quality assessment")
+class AcousticIndicators(BaseModel):
+    snr_db: float = Field(..., description="Estimated Signal-to-Noise Ratio in decibels")
+    clipping_detected: bool = Field(..., description="Whether digital audio clipping was detected")
+    pitch_mean_hz: float = Field(..., description="Estimated fundamental frequency (F0) mean in Hz")
+    pitch_std_hz: float = Field(..., description="Standard deviation of pitch / F0 variation in Hz")
+    pitch_stability_score: float = Field(..., description="Normalized pitch stability index (0=natural variance, 1=monotone/synthetic)")
+    silence_ratio: float = Field(..., description="Ratio of silent pauses to total duration (0.0 to 1.0)")
+    spectral_flatness_mean: float = Field(..., description="Mean spectral flatness (tonal vs noise energy)")
+    quality_check: AudioQualityScore = Field(..., description="Overall audio quality classification")
+
+class FusionAnalysis(BaseModel):
+    ml_probability: float = Field(..., ge=0.0, le=1.0, description="Supervised Random Forest AI probability")
+    acoustic_heuristic_score: float = Field(..., ge=0.0, le=1.0, description="Interpretable acoustic signal indicator score")
+    fusion_risk_score: float = Field(..., ge=0.0, le=1.0, description="Calibrated final deepfake risk score after fusion")
+    fusion_method: str = Field(..., description="Fusion model type used (e.g., 'learned_logistic_regression' or 'calibrated_rule_fusion')")
+    ml_weight: float = Field(..., description="Relative contribution weight of ML features")
+    acoustic_weight: float = Field(..., description="Relative contribution weight of acoustic indicators")
 
 class SegmentAnalysis(BaseModel):
-    start_time: float
-    end_time: float
-    label: ClassificationResult
-    confidence: float
+    start_time: float = Field(..., description="Segment start in seconds")
+    end_time: float = Field(..., description="Segment end in seconds")
+    label: ClassificationResult = Field(..., description="AI_GENERATED or HUMAN verdict for this 1-second segment")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence in this segment label")
+    risk_score: float = Field(..., ge=0.0, le=1.0, description="Deepfake risk score for this segment")
+    snr_db: Optional[float] = Field(None, description="Segment local SNR (dB)")
+    pitch_stability: Optional[float] = Field(None, description="Segment local pitch stability")
+    spectral_flatness: Optional[float] = Field(None, description="Segment local spectral flatness")
 
 class VoiceRequest(BaseModel):
-    audio_data: Optional[str] = Field(None, description="Base64 encoded MP3 audio data")
-    audio_url: Optional[str] = Field(None, description="URL pointing to an MP3 voice sample")
+    audio_data: Optional[str] = Field(None, description="Base64 encoded audio data (MP3/WAV/FLAC)")
+    audio_url: Optional[str] = Field(None, description="URL pointing to a voice sample")
     audio_base64: Optional[str] = Field(None, description="Alternative field for Base64 data")
-
-
-
-class ExplainabilityData(BaseModel):
-    shap_results: Dict[str, float] = Field(..., description="SHAP feature importances")
-    lime_results: Dict[str, float] = Field(..., description="LIME local explanations")
-    gradcam_regions: List[Dict[str, Any]] = Field(..., description="High saliency regions in spectrogram")
-    attention_segments: List[Dict[str, Any]] = Field(..., description="Critical time chunks affecting prediction")
-    counterfactual_explanation: str = Field(..., description="Minimal change needed to flip prediction")
 
 class VoiceResponse(BaseModel):
     classification: ClassificationResult
     confidence_score: float = Field(..., ge=0.0, le=1.0)
-    human_confidence: float = Field(..., ge=0.0, le=1.0)
-    ai_confidence: float = Field(..., ge=0.0, le=1.0)
     confidence_level: ConfidenceLevel
-    deepfake_risk_score: float = Field(..., ge=0.0, le=1.0)
+    deepfake_risk_score: float = Field(..., ge=0.0, le=1.0, description="Composite deepfake risk assessment (0.0=Human, 1.0=Synthetic/AI)")
     detected_language: SupportedLanguage
-    audio_quality: AudioQuality
-    explainability: ExplainabilityData
-    segments: List[SegmentAnalysis] = Field(default_factory=list)
+    language_confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    sample_transcript: Optional[str] = Field(default="", description="Preview transcription generated by Faster Whisper")
+    acoustic_indicators: AcousticIndicators
+    fusion_analysis: FusionAnalysis
+    explainability: List[str] = Field(..., description="Detailed acoustic and statistical justifications for the decision")
+    segments: List[SegmentAnalysis] = Field(default_factory=list, description="Second-by-second suspicious segment timeline")
+    processing_time_ms: Optional[float] = Field(default=0.0, description="Inference latency in milliseconds")

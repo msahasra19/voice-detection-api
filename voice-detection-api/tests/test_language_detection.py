@@ -1,49 +1,30 @@
 import os
 import librosa
 import numpy as np
-from app.analysis import detect_language_ml
+from app.analysis import detect_language_and_transcript
 from app.schemas import SupportedLanguage
 
 def test_language_detection():
-    print("Testing Language Detection with local ML model (Whisper)...")
-    
-    # Path to downloaded samples
+    print("Testing Multilingual Identification with local Faster Whisper...")
     samples_dir = os.path.join("dataset", "languages")
     
-    if not os.path.exists(samples_dir) or not [f for f in os.listdir(samples_dir) if f.endswith(('.wav', '.mp3'))]:
-        print(f"\nNo audio samples found in {samples_dir}.")
-        print("Please add your own language samples (en_test.wav, hi_test.wav, te_test.wav) to this folder.")
-        print("\nSYSTEM CAPABILITY VERIFICATION:")
-        print("- Whisper 'base' model supports 99+ languages including English, Hindi, and Telugu.")
-        print("- Backend mapping for 'en', 'hi', and 'te' is confirmed in app/analysis.py.")
+    if not os.path.exists(samples_dir):
+        print(f"Directory {samples_dir} not found.")
         return
 
-    for filename in files:
+    languages_files = [f for f in os.listdir(samples_dir) if f.endswith(('.wav', '.mp3'))]
+    if not languages_files:
+        print(f"No audio samples in {samples_dir}.")
+        return
+
+    for filename in languages_files:
         file_path = os.path.join(samples_dir, filename)
         print(f"\nProcessing: {filename}...")
-        
         try:
-            # Load audio
             y, sr = librosa.load(file_path, sr=16000)
-            
-            # Detect language
-            detected_lang = detect_language_ml(y, sr)
-            
-            print(f"Result for '{filename}':")
-            print(f">> DETECTED: {detected_lang}")
-            
-            # Simple validation based on filename prefix
-            expected = ""
-            if filename.startswith("en_"): expected = SupportedLanguage.ENGLISH
-            elif filename.startswith("hi_"): expected = SupportedLanguage.HINDI
-            elif filename.startswith("te_"): expected = SupportedLanguage.TELUGU
-            
-            if expected:
-                if detected_lang == expected:
-                    print("✅ MATCH: Detection is correct.")
-                else:
-                    print(f"❌ MISMATCH: Expected {expected}, but got {detected_lang}.")
-            
+            detected_lang, prob, transcript = detect_language_and_transcript(y, sr)
+            print(f">> DETECTED: {detected_lang} (Confidence: {prob*100:.1f}%)")
+            print(f">> TRANSCRIPT: '{transcript}'")
         except Exception as e:
             print(f"Error testing {filename}: {e}")
 

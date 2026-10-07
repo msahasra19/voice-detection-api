@@ -4,293 +4,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Detection AI - Detect AI vs Human Voice</title>
+    <title>Voice Anti-Spoofing & Multilingual Forensics AI</title>
     <meta name="description"
-        content="Advanced AI-powered voice detection system that analyzes audio to determine if it's AI-generated or human, with language detection and quality analysis.">
+        content="Lightweight dual-branch voice forensics system combining supervised machine learning, interpretable signal acoustics, learned fusion, and multilingual language identification.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap"
         rel="stylesheet">
-    <!-- Use /static paths so FastAPI's static mount serves these correctly in deployment -->
-    <link rel="stylesheet" href="/static/styles.css?v=2.0">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 
 <body>
-    <!-- Background Elements -->
+    <!-- Dynamic Ambient Glowing Backgrounds -->
     <div class="bg-gradient"></div>
     <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
 
-    <!-- Main Container -->
     <div class="container">
         <!-- Header -->
         <header class="header">
             <div class="logo">
-                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20Z"
-                        fill="url(#gradient1)" />
-                    <path
-                        d="M12 6C8.69 6 6 8.69 6 12C6 15.31 8.69 18 12 18C15.31 18 18 15.31 18 12C18 8.69 15.31 6 12 6ZM12 16C9.79 16 8 14.21 8 12C8 9.79 9.79 8 12 8C14.21 8 16 9.79 16 12C16 14.21 14.21 16 12 16Z"
-                        fill="url(#gradient2)" />
-                    <defs>
-                        <linearGradient id="gradient1" x1="2" y1="2" x2="22" y2="22">
-                            <stop offset="0%" stop-color="#667eea" />
-                            <stop offset="100%" stop-color="#764ba2" />
-                        </linearGradient>
-                        <linearGradient id="gradient2" x1="6" y1="6" x2="18" y2="18">
-                            <stop offset="0%" stop-color="#f093fb" />
-                            <stop offset="100%" stop-color="#f5576c" />
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <h1 class="logo-text">Voice Detection AI</h1>
+                <div class="logo-icon-wrapper">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
+                            stroke="url(#grad1)" stroke-width="1.8" />
+                        <path d="M7 12V12.01M9.5 9V15M12 6V18M14.5 9V15M17 12V12.01"
+                            stroke="url(#grad2)" stroke-width="2.2" stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="grad1" x1="2" y1="2" x2="22" y2="22">
+                                <stop offset="0%" stop-color="#38bdf8" />
+                                <stop offset="100%" stop-color="#818cf8" />
+                            </linearGradient>
+                            <linearGradient id="grad2" x1="7" y1="6" x2="17" y2="18">
+                                <stop offset="0%" stop-color="#f43f5e" />
+                                <stop offset="100%" stop-color="#a855f7" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="logo-title">Voice Forensics AI</h1>
+                    <p class="logo-subtitle">Dual-Branch Anti-Spoofing & Multilingual Detection</p>
+                </div>
             </div>
-            <div class="header-status">
-                <span class="status-indicator" id="apiStatus">
+            <div class="header-actions">
+                <button class="nav-tab active" id="tabForensics">Forensics Dashboard</button>
+                <button class="nav-tab" id="tabAblation">Ablation & Benchmarks</button>
+                <div class="status-badge" id="apiStatusBadge">
                     <span class="status-dot"></span>
-                    <span class="status-text">API Ready</span>
-                </span>
+                    <span class="status-text">CPU Core Online</span>
+                </div>
             </div>
         </header>
 
-        <!-- Hero Section -->
-        <section class="hero">
-            <h2 class="hero-title">Detect AI-Generated Voices</h2>
-            <p class="hero-subtitle">Advanced AI analysis to distinguish between human and synthetic voices with
-                language detection and quality assessment</p>
-        </section>
+        <!-- FORENSICS VIEW -->
+        <main id="forensicsView">
+            <!-- Hero -->
+            <section class="hero">
+                <div class="hero-chip">Hybrid ML + Signal Forensics + Quantized Faster Whisper</div>
+                <h2 class="hero-title">Deepfake Voice Detection & Spoken Language Identification</h2>
+                <p class="hero-subtitle">
+                    Combines supervised Random Forest acoustic classifiers with interpretable signal-level indicators
+                    (SNR, F0 pitch stability, silence dynamics), calibrated via learned fusion with second-by-second timeline localization.
+                </p>
+            </section>
 
-        <!-- Upload Section -->
-        <section class="upload-section">
-            <div class="card upload-card">
-                <div class="upload-area" id="uploadArea">
-                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 15V3M12 3L8 7M12 3L16 7" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M2 17L2 19C2 20.1046 2.89543 21 4 21L20 21C21.1046 21 22 20.1046 22 19V17"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                    <h3 class="upload-title">Drop your audio file here</h3>
-                    <p class="upload-subtitle">or click to browse</p>
-                    <p class="upload-formats">Supports MP3, WAV, FLAC, M4A</p>
-                    <input type="file" id="audioFile" accept="audio/*" hidden>
+            <!-- Audio Input Panel -->
+            <section class="input-grid">
+                <!-- Drop & File Upload Card -->
+                <div class="card upload-card" id="uploadArea">
+                    <input type="file" id="audioFileInput" accept="audio/*,.wav,.mp3,.flac,.m4a,.ogg" hidden>
+                    <div class="upload-inner">
+                        <div class="upload-icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <h3 class="upload-heading">Drop your audio file here</h3>
+                        <p class="upload-desc">or click to browse from device (MP3, WAV, FLAC, M4A)</p>
+                    </div>
+
+                    <div class="file-loaded-banner" id="fileLoadedBanner" style="display: none;">
+                        <div class="file-info-col">
+                            <span class="file-name-text" id="loadedFileName">sample.wav</span>
+                            <span class="file-size-text" id="loadedFileSize">0.0 MB</span>
+                        </div>
+                        <button class="btn-icon-clear" id="btnClearFile" title="Clear selection">✕</button>
+                    </div>
                 </div>
 
-                <div class="file-info" id="fileInfo" style="display: none;">
-                    <div class="file-details">
-                        <svg class="file-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M9 12H15M9 16H15M17 21H7C5.89543 21 5 20.1046 5 19V5C5 3.89543 5.89543 3 7 3H12.5858C12.851 3 13.1054 3.10536 13.2929 3.29289L18.7071 8.70711C18.8946 8.89464 19 9.149 19 9.41421V19C19 20.1046 18.1046 21 17 21Z"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <div class="file-meta">
-                            <p class="file-name" id="fileName"></p>
-                            <p class="file-size" id="fileSize"></p>
+                <!-- Record & Presets Card -->
+                <div class="card tools-card">
+                    <h3 class="tools-title">Direct Microphone Recording & Sample Presets</h3>
+                    <div class="mic-recorder-box">
+                        <button class="btn-mic" id="btnRecordMic">
+                            <span class="mic-dot"></span>
+                            <span id="recordBtnText">Record from Microphone</span>
+                        </button>
+                        <span class="record-timer" id="recordTimer">00:00</span>
+                    </div>
+
+                    <div class="presets-section">
+                        <label class="presets-label">Instant Test Samples (Bona Fide vs Synthetic):</label>
+                        <div class="presets-grid">
+                            <button class="btn-preset" data-preset="human_clean">👤 Human Voice (Clean English)</button>
+                            <button class="btn-preset" data-preset="ai_synth">🤖 AI Synthetic (Pristine TTS)</button>
+                            <button class="btn-preset" data-preset="ai_vocoder">⚡ Neural Vocoder Artifact</button>
+                            <button class="btn-preset" data-preset="human_conv">🌐 Multilingual Speech Sample</button>
                         </div>
                     </div>
-                    <button class="btn-remove" id="removeFile">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" />
+
+                    <button class="btn-analyze-action" id="btnAnalyze" disabled>
+                        <span>Run Forensics Analysis</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
                         </svg>
                     </button>
                 </div>
+            </section>
 
-                <div class="api-key-section">
-                    <label for="apiKey" class="api-key-label">
-                        <svg class="key-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M15 7C15 8.65685 13.6569 10 12 10C10.3431 10 9 8.65685 9 7C9 5.34315 10.3431 4 12 4C13.6569 4 15 5.34315 15 7Z"
-                                stroke="currentColor" stroke-width="2" />
-                            <path d="M12 10V20M12 20L9 17M12 20L15 17" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
+            <!-- Loading Spinner State -->
+            <div class="loading-state-card card" id="loadingCard" style="display: none;">
+                <div class="forensics-loader">
+                    <div class="loader-pulse"></div>
+                    <div class="loader-ring"></div>
+                </div>
+                <h3 class="loading-state-title">Processing Dual-Branch Forensics Pipeline...</h3>
+                <p class="loading-state-desc" id="loadingStatusDesc">Extracting 44-dim acoustic features, estimating SNR/F0, and running Faster Whisper language identification</p>
+            </div>
+
+            <!-- RESULTS DASHBOARD -->
+            <section class="results-container" id="resultsSection" style="display: none;">
+                <!-- Main Verdict Banner -->
+                <div class="card verdict-card" id="verdictCard">
+                    <div class="verdict-primary">
+                        <div class="verdict-pill" id="verdictPill">
+                            <span class="verdict-dot"></span>
+                            <span id="verdictPillText">BONA FIDE HUMAN</span>
+                        </div>
+                        <h2 class="verdict-title" id="verdictTitle">Authentic Human Speech</h2>
+                        <p class="verdict-summary" id="verdictSummary">Acoustic and spectral features are consistent with natural human vocal dynamics.</p>
+                        <div class="verdict-meta-row">
+                            <span class="meta-tag">Confidence: <b id="verdictConfidence">92.4%</b> (<span id="verdictConfLevel">HIGH</span>)</span>
+                            <span class="meta-tag">Processing Latency: <b id="verdictLatency">142 ms</b></span>
+                            <span class="meta-tag">Engine: <b id="verdictEngine">Learned Fusion (RF + Acoustics)</b></span>
+                        </div>
+                    </div>
+
+                    <div class="verdict-gauges">
+                        <div class="gauge-box">
+                            <div class="gauge-circle" id="riskGaugeCircle">
+                                <span class="gauge-value" id="riskGaugeValue">12%</span>
+                            </div>
+                            <span class="gauge-label">Deepfake Risk Score</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Three Branch Metrics Columns -->
+                <div class="branches-grid">
+                    <!-- Branch 1: Supervised ML Classifier -->
+                    <div class="card branch-card">
+                        <div class="branch-header">
+                            <div class="branch-tag ml-tag">Branch 1: Supervised ML</div>
+                            <h4 class="branch-name">Random Forest Classifier</h4>
+                        </div>
+                        <div class="branch-stat-row">
+                            <span class="stat-name">AI Pattern Probability</span>
+                            <span class="stat-value" id="mlProbValue">12.5%</span>
+                        </div>
+                        <div class="stat-bar-track">
+                            <div class="stat-bar-fill ml-fill" id="mlProbBar" style="width: 12.5%;"></div>
+                        </div>
+                        <div class="subfeatures-list">
+                            <div class="subfeature-item">
+                                <span>MFCC Acoustic Spectrum:</span>
+                                <b>13 Coefficients (μ, σ)</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Spectral Contrast:</span>
+                                <b>6 Frequency Bands</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Spectral Flatness:</span>
+                                <b id="mlFlatnessValue">0.042</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branch 2: Interpretable Signal Acoustics -->
+                    <div class="card branch-card">
+                        <div class="branch-header">
+                            <div class="branch-tag acoustic-tag">Branch 2: Signal Acoustics</div>
+                            <h4 class="branch-name">Physical Acoustic Indicators</h4>
+                        </div>
+                        <div class="branch-stat-row">
+                            <span class="stat-name">Estimated SNR</span>
+                            <span class="stat-value" id="acousticSnrValue">24.8 dB</span>
+                        </div>
+                        <div class="subfeatures-list">
+                            <div class="subfeature-item">
+                                <span>Fundamental F0 Pitch:</span>
+                                <b id="pitchMeanStd">185.2 Hz (±42.1 Hz)</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Pitch Stability Index:</span>
+                                <b id="pitchStabilityVal">0.18 (Natural)</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Silence / Pause Ratio:</span>
+                                <b id="silenceRatioVal">18.4%</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Audio Quality Check:</span>
+                                <b id="qualityCheckVal">HIGH</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branch 3: Multilingual Faster Whisper -->
+                    <div class="card branch-card">
+                        <div class="branch-header">
+                            <div class="branch-tag whisper-tag">Branch 3: Language ID</div>
+                            <h4 class="branch-name">Pretrained Faster Whisper</h4>
+                        </div>
+                        <div class="branch-stat-row">
+                            <span class="stat-name">Detected Language</span>
+                            <span class="stat-value highlight-lang" id="detectedLangValue">English</span>
+                        </div>
+                        <div class="subfeatures-list">
+                            <div class="subfeature-item">
+                                <span>Model Architecture:</span>
+                                <b>Quantized CPU (int8)</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Language Confidence:</span>
+                                <b id="langConfidenceVal">99.4%</b>
+                            </div>
+                            <div class="subfeature-item transcript-box">
+                                <span>Preview Transcript:</span>
+                                <p class="transcript-text" id="transcriptText">"Natural spoken speech transcription..."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second-by-Second Suspicious Timeline -->
+                <div class="card timeline-card">
+                    <div class="timeline-header">
+                        <div>
+                            <h3 class="timeline-title">Second-by-Second Suspicious Segment Timeline</h3>
+                            <p class="timeline-subtitle">Local temporal window forensics (1-second intervals) showing suspicious segment localization</p>
+                        </div>
+                        <div class="timeline-legend">
+                            <span class="legend-item"><span class="legend-color safe-color"></span> Human (<50% Risk)</span>
+                            <span class="legend-item"><span class="legend-color suspicious-color"></span> Suspicious / AI (≥50% Risk)</span>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Bar Visualizer -->
+                    <div class="timeline-track-container">
+                        <div class="timeline-track" id="timelineTrack"></div>
+                    </div>
+
+                    <div class="segment-detail-hover" id="segmentHoverDetail" style="display: none;">
+                        <span id="hoverTimeSpan">0.0s - 1.0s</span>: <b id="hoverVerdict">Human</b> (Risk: <span id="hoverRisk">14%</span>, SNR: <span id="hoverSnr">22dB</span>)
+                    </div>
+                </div>
+
+                <!-- Forensic Explainability & Decision Insights -->
+                <div class="card explainability-card">
+                    <h3 class="explainability-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="section-icon">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
                         </svg>
-                        API Key (Optional)
-                    </label>
-                    <input type="password" id="apiKey" class="api-key-input" placeholder="Enter your API key">
+                        Forensic Evidence & Explainability Justification
+                    </h3>
+                    <ul class="explainability-list" id="explainabilityList"></ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- ABLATION & BENCHMARKS VIEW -->
+        <main id="ablationView" style="display: none;">
+            <section class="hero">
+                <div class="hero-chip">Research & Experimental Validation</div>
+                <h2 class="hero-title">Ablation Study & Cross-Domain Generalization</h2>
+                <p class="hero-subtitle">
+                    Systematic evaluation of feature subsets, heuristic acoustic indicators, and learned logistic regression fusion
+                    across the ASVspoof 2019 LA benchmark and In the Wild real-world dataset.
+                </p>
+            </section>
+
+            <div class="card benchmark-card">
+                <div class="benchmark-header">
+                    <h3 class="benchmark-title">Ablation Experiment Comparison Table</h3>
+                    <button class="btn-refresh-benchmarks" id="btnRefreshAblation">🔄 Re-evaluate Benchmarks</button>
                 </div>
 
-                <button class="btn-primary" id="analyzeBtn" disabled>
-                    <span class="btn-text">Analyze Audio</span>
-                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13 7L18 12M18 12L13 17M18 12H6" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                </button>
+                <div class="table-responsive">
+                    <table class="ablation-table">
+                        <thead>
+                            <tr>
+                                <th>Config</th>
+                                <th>System Architecture & Features</th>
+                                <th>Classifier</th>
+                                <th>Accuracy</th>
+                                <th>ROC-AUC</th>
+                                <th>Equal Error Rate (EER)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ablationTableBody">
+                            <!-- Populated via script.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ablation-notes-grid">
+                    <div class="note-card">
+                        <h4>Equal Error Rate (EER)</h4>
+                        <p>Standard anti-spoofing metric measuring the operating threshold where False Acceptance Rate equals False Rejection Rate. Lower EER indicates superior separation.</p>
+                    </div>
+                    <div class="note-card">
+                        <h4>Learned Fusion Advantage</h4>
+                        <p>Replacing fixed heuristic weights with a calibrated Logistic Regression model ensures statistical weights adapt dynamically to both clean benchmarks and noisy real-world recordings.</p>
+                    </div>
+                    <div class="note-card">
+                        <h4>Cross-Domain Robustness</h4>
+                        <p>Evaluates generalization from ASVspoof 2019 to In the Wild online audio, mitigating dataset-specific spectral overfitting.</p>
+                    </div>
+                </div>
             </div>
-        </section>
-
-        <!-- Loading State -->
-        <section class="loading-section" id="loadingSection" style="display: none;">
-            <div class="card loading-card">
-                <div class="loading-spinner"></div>
-                <h3 class="loading-title">Analyzing Audio...</h3>
-                <p class="loading-subtitle">Processing your audio file with advanced AI models</p>
-            </div>
-        </section>
-
-        <!-- Results Section -->
-        <section class="results-section" id="resultsSection" style="display: none;">
-            <div class="card results-card">
-                <h3 class="results-title">Analysis Results</h3>
-
-                <!-- Classification Result -->
-                <div class="result-main" id="resultMain">
-                    <div class="result-badge" id="resultBadge"></div>
-                    <h2 class="result-classification" id="resultClassification"></h2>
-
-                </div>
-
-                <!-- Metrics Grid -->
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-icon language-icon">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                                    stroke="currentColor" stroke-width="2" />
-                                <path
-                                    d="M2 12H22M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z"
-                                    stroke="currentColor" stroke-width="2" />
-                            </svg>
-                        </div>
-                        <div class="metric-content">
-                            <p class="metric-label">Language</p>
-                            <p class="metric-value" id="languageValue"></p>
-                        </div>
-                    </div>
-
-                    <div class="metric-card">
-                        <div class="metric-icon risk-icon">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M12 9V13M12 17H12.01M5.07183 19H18.9282C20.4678 19 21.4301 17.3333 20.6603 16L13.7321 4C12.9623 2.66667 11.0377 2.66667 10.2679 4L3.33975 16C2.56995 17.3333 3.53223 19 5.07183 19Z"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                            </svg>
-                        </div>
-                        <div class="metric-content">
-                            <p class="metric-label">Deepfake Risk</p>
-                            <p class="metric-value" id="riskValue"></p>
-                        </div>
-                    </div>
-
-                    <div class="metric-card">
-                        <div class="metric-icon quality-icon">
-                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                            </svg>
-                        </div>
-                        <div class="metric-content">
-                            <p class="metric-label">Audio Quality</p>
-                            <p class="metric-value" id="qualityValue"></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Audio Quality Details -->
-                <div class="quality-details">
-                    <h4 class="quality-title">Quality Metrics</h4>
-                    <div class="quality-metrics">
-                        <div class="quality-metric">
-                            <span class="quality-metric-label">Signal-to-Noise Ratio:</span>
-                            <span class="quality-metric-value" id="snrValue"></span>
-                        </div>
-                        <div class="quality-metric">
-                            <span class="quality-metric-label">Clipping Detected:</span>
-                            <span class="quality-metric-value" id="clippingValue"></span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Advanced Explainability (XAI) -->
-                <div class="xai-section">
-                    <h3 class="xai-main-title">Explainable AI (XAI) Analysis</h3>
-
-                    <!-- Counterfactual -->
-                    <div class="xai-card counterfactual-card">
-                        <h4 class="xai-title">Counterfactual Explanation</h4>
-                        <p id="counterfactualText" class="xai-text"></p>
-                    </div>
-
-                    <div class="xai-stack">
-                        <!-- SHAP Results -->
-                        <div class="xai-card">
-                            <h4 class="xai-title">SHAP Feature Impact</h4>
-                            <p class="xai-subtitle">How specific acoustic features pushed the prediction</p>
-                            <div class="xai-chart-container" id="shapContainer"></div>
-                        </div>
-
-                        <!-- LIME Results -->
-                        <div class="xai-card">
-                            <h4 class="xai-title">LIME Local Explanation</h4>
-                            <p class="xai-subtitle">Local mathematical boundaries affecting this audio</p>
-                            <div class="xai-chart-container" id="limeContainer"></div>
-                        </div>
-                    </div>
-
-                    <!-- Spectrogram / Grad-CAM -->
-                    <div class="xai-card">
-                        <h4 class="xai-title">Spectrogram Saliency (Grad-CAM approx)</h4>
-                        <p class="xai-subtitle">Regions of extreme spectral flux driving the model decision</p>
-                        <div class="gradcam-container" id="gradcamContainer"></div>
-                    </div>
-
-                    <!-- Attention Segments -->
-                    <div class="xai-card">
-                        <h4 class="xai-title">Important Audio Segments (Attention Heatmap)</h4>
-                        <p class="xai-subtitle">Time chunks with highest RMS energy anomaly</p>
-                        <div class="segments-timeline" id="attentionTimeline"></div>
-                    </div>
-                </div>
-
-                <!-- Audio Segments Section -->
-                <div class="segments-section" id="segmentsSection" style="display: none;">
-                    <h3 class="segments-title">Detailed Segment Analysis</h3>
-                    <p class="xai-subtitle">Analysis of 1-second chunks across the entire recording</p>
-                    <div class="segments-timeline" id="segmentsTimeline"></div>
-                </div>
-
-                <button class="btn-secondary" id="analyzeAnother">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M4 7H20M10 11V17M14 11V17M5 7L6 19C6 20.1046 6.89543 21 8 21H16C17.1046 21 18 20.1046 18 19L19 7M9 7V4C9 3.44772 9.44772 3 10 3H14C14.5523 3 15 3.44772 15 4V7"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    Analyze Another File
-                </button>
-            </div>
-        </section>
-
-        <!-- Error Section -->
-        <section class="error-section" id="errorSection" style="display: none;">
-            <div class="card error-card">
-                <svg class="error-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-                <h3 class="error-title">Analysis Failed</h3>
-                <p class="error-message" id="errorMessage"></p>
-                <button class="btn-secondary" id="tryAgain">Try Again</button>
-            </div>
-        </section>
+        </main>
 
         <!-- Footer -->
         <footer class="footer">
-            <p class="footer-text">Powered by Advanced AI Voice Detection Technology</p>
+            <p>Voice Anti-Spoofing & Multilingual Forensics Engine • CPU-Optimized Local Execution</p>
             <div class="footer-links">
-                <a href="/docs" class="footer-link">API Docs</a>
-                <a href="/health" class="footer-link">Status</a>
+                <a href="/docs" target="_blank">Swagger OpenAPI Docs</a>
+                <a href="/health" target="_blank">System Health</a>
             </div>
         </footer>
     </div>
 
-    <!-- Use /static path for the script as well -->
-    <script src="/static/script.js?v=2.0"></script>
+    <script src="/static/script.js"></script>
 </body>
 
 </html>

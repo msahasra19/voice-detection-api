@@ -158,56 +158,9 @@ Submit Base64 encoded audio or an audio URL.
 ### 2. `POST /predict-file`
 Direct multipart/form-data audio file upload (`.mp3`, `.wav`, `.flac`, `.m4a`, `.ogg`, `.webm`).
 
-### 3. Response Schema
-```json
-{
-  "classification": "AI_GENERATED",
-  "confidence_score": 0.99,
-  "confidence_level": "HIGH",
-  "deepfake_risk_score": 0.99,
-  "detected_language": "English",
-  "language_confidence": 0.99,
-  "sample_transcript": "Transcript snippet...",
-  "acoustic_indicators": {
-    "snr_db": 26.46,
-    "clipping_detected": false,
-    "pitch_mean_hz": 213.5,
-    "pitch_std_hz": 64.9,
-    "pitch_stability_score": 0.216,
-    "silence_ratio": 0.437,
-    "spectral_flatness_mean": 0.0125,
-    "quality_check": "MEDIUM"
-  },
-  "fusion_analysis": {
-    "ml_probability": 0.98,
-    "acoustic_heuristic_score": 0.85,
-    "fusion_risk_score": 0.99,
-    "fusion_method": "learned_logistic_regression",
-    "ml_weight": 0.55,
-    "acoustic_weight": 0.45
-  },
-  "explainability": [
-    "AI/Synthetic Speech Detected with 99.0% risk score.",
-    "Calibrated Decision Fusion: ML Evidence + Physical Acoustic Indicators."
-  ],
-  "segments": [
-    {
-      "start_time": 0.0,
-      "end_time": 1.0,
-      "label": "AI_GENERATED",
-      "confidence": 0.99,
-      "risk_score": 0.99
-    }
-  ],
-  "processing_time_ms": 124.5
-}
-```
-
 ---
 
 ## 🔬 Re-running Training & Ablation Experiments
-
-To re-synthesize benchmark datasets and train the classifiers from scratch:
 
 ```bash
 # 1. Prepare multi-class benchmark samples
