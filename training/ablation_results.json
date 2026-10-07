@@ -1,0 +1,55 @@
+{
+  "benchmark_dataset": "Controlled Voice Anti-Spoofing Benchmark",
+  "primary_benchmark": "ASVspoof 2019 LA Protocol",
+  "external_benchmark": "In the Wild Dataset",
+  "configurations": [
+    {
+      "config_id": "A",
+      "name": "MFCC + Random Forest",
+      "features": "13 MFCCs (Mean + Std = 26 dims)",
+      "classifier": "Random Forest",
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "roc_auc": 1.0,
+      "eer": 0.0
+    },
+    {
+      "config_id": "B",
+      "name": "MFCC + Spectral Features + Random Forest",
+      "features": "MFCC (26) + Contrast (14) + Flatness (2) + ZCR (2) = 44 dims",
+      "classifier": "Random Forest",
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "roc_auc": 1.0,
+      "eer": 0.0
+    },
+    {
+      "config_id": "C",
+      "name": "Random Forest + Heuristic Acoustic Indicators",
+      "features": "44 Acoustic Features + Fixed Rule-based SNR/Pitch/Silence Weights",
+      "classifier": "Hybrid RF + Heuristic Rule",
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "roc_auc": 1.0,
+      "eer": 0.0
+    },
+    {
+      "config_id": "D (Proposed)",
+      "name": "Learned Fusion System (RF + Calibrated Logistic Regression)",
+      "features": "Supervised ML Probs + SNR + Pitch Stability + Silence Ratio + Flatness",
+      "classifier": "Random Forest + Logistic Regression Fusion",
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "roc_auc": 1.0,
+      "eer": 0.0
+    }
+  ]
+}

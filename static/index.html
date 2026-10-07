@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Anti-Spoofing & Multilingual Forensics AI</title>
+    <meta name="description"
+        content="Lightweight dual-branch voice forensics system combining supervised machine learning, interpretable signal acoustics, learned fusion, and multilingual language identification.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <!-- Dynamic Ambient Glowing Backgrounds -->
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon-wrapper">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2Z"
+                            stroke="url(#grad1)" stroke-width="1.8" />
+                        <path d="M7 12V12.01M9.5 9V15M12 6V18M14.5 9V15M17 12V12.01"
+                            stroke="url(#grad2)" stroke-width="2.2" stroke-linecap="round" />
+                        <defs>
+                            <linearGradient id="grad1" x1="2" y1="2" x2="22" y2="22">
+                                <stop offset="0%" stop-color="#38bdf8" />
+                                <stop offset="100%" stop-color="#818cf8" />
+                            </linearGradient>
+                            <linearGradient id="grad2" x1="7" y1="6" x2="17" y2="18">
+                                <stop offset="0%" stop-color="#f43f5e" />
+                                <stop offset="100%" stop-color="#a855f7" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="logo-title">Voice Forensics AI</h1>
+                    <p class="logo-subtitle">Dual-Branch Anti-Spoofing & Multilingual Detection</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="nav-tab active" id="tabForensics">Forensics Dashboard</button>
+                <button class="nav-tab" id="tabAblation">Ablation & Benchmarks</button>
+                <div class="status-badge" id="apiStatusBadge">
+                    <span class="status-dot"></span>
+                    <span class="status-text">CPU Core Online</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- FORENSICS VIEW -->
+        <main id="forensicsView">
+            <!-- Hero -->
+            <section class="hero">
+                <div class="hero-chip">Hybrid ML + Signal Forensics + Quantized Faster Whisper</div>
+                <h2 class="hero-title">Deepfake Voice Detection & Spoken Language Identification</h2>
+                <p class="hero-subtitle">
+                    Combines supervised Random Forest acoustic classifiers with interpretable signal-level indicators
+                    (SNR, F0 pitch stability, silence dynamics), calibrated via learned fusion with second-by-second timeline localization.
+                </p>
+            </section>
+
+            <!-- Audio Input Panel -->
+            <section class="input-grid">
+                <!-- Drop & File Upload Card -->
+                <div class="card upload-card" id="uploadArea">
+                    <input type="file" id="audioFileInput" accept="audio/*,.wav,.mp3,.flac,.m4a,.ogg" hidden>
+                    <div class="upload-inner">
+                        <div class="upload-icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <h3 class="upload-heading">Drop your audio file here</h3>
+                        <p class="upload-desc">or click to browse from device (MP3, WAV, FLAC, M4A)</p>
+                    </div>
+
+                    <div class="file-loaded-banner" id="fileLoadedBanner" style="display: none;">
+                        <div class="file-info-col">
+                            <span class="file-name-text" id="loadedFileName">sample.wav</span>
+                            <span class="file-size-text" id="loadedFileSize">0.0 MB</span>
+                        </div>
+                        <button class="btn-icon-clear" id="btnClearFile" title="Clear selection">✕</button>
+                    </div>
+                </div>
+
+                <!-- Record & Presets Card -->
+                <div class="card tools-card">
+                    <h3 class="tools-title">Direct Microphone Recording & Sample Presets</h3>
+                    <div class="mic-recorder-box">
+                        <button class="btn-mic" id="btnRecordMic">
+                            <span class="mic-dot"></span>
+                            <span id="recordBtnText">Record from Microphone</span>
+                        </button>
+                        <span class="record-timer" id="recordTimer">00:00</span>
+                    </div>
+
+                    <div class="presets-section">
+                        <label class="presets-label">Instant Test Samples (Bona Fide vs Synthetic):</label>
+                        <div class="presets-grid">
+                            <button class="btn-preset" data-preset="human_clean">👤 Human Voice (Clean English)</button>
+                            <button class="btn-preset" data-preset="ai_synth">🤖 AI Synthetic (Pristine TTS)</button>
+                            <button class="btn-preset" data-preset="ai_vocoder">⚡ Neural Vocoder Artifact</button>
+                            <button class="btn-preset" data-preset="human_conv">🌐 Multilingual Speech Sample</button>
+                        </div>
+                    </div>
+
+                    <button class="btn-analyze-action" id="btnAnalyze" disabled>
+                        <span>Run Forensics Analysis</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Loading Spinner State -->
+            <div class="loading-state-card card" id="loadingCard" style="display: none;">
+                <div class="forensics-loader">
+                    <div class="loader-pulse"></div>
+                    <div class="loader-ring"></div>
+                </div>
+                <h3 class="loading-state-title">Processing Dual-Branch Forensics Pipeline...</h3>
+                <p class="loading-state-desc" id="loadingStatusDesc">Extracting 44-dim acoustic features, estimating SNR/F0, and running Faster Whisper language identification</p>
+            </div>
+
+            <!-- RESULTS DASHBOARD -->
+            <section class="results-container" id="resultsSection" style="display: none;">
+                <!-- Main Verdict Banner -->
+                <div class="card verdict-card" id="verdictCard">
+                    <div class="verdict-primary">
+                        <div class="verdict-pill" id="verdictPill">
+                            <span class="verdict-dot"></span>
+                            <span id="verdictPillText">BONA FIDE HUMAN</span>
+                        </div>
+                        <h2 class="verdict-title" id="verdictTitle">Authentic Human Speech</h2>
+                        <p class="verdict-summary" id="verdictSummary">Acoustic and spectral features are consistent with natural human vocal dynamics.</p>
+                        <div class="verdict-meta-row">
+                            <span class="meta-tag">Confidence: <b id="verdictConfidence">92.4%</b> (<span id="verdictConfLevel">HIGH</span>)</span>
+                            <span class="meta-tag">Processing Latency: <b id="verdictLatency">142 ms</b></span>
+                            <span class="meta-tag">Engine: <b id="verdictEngine">Learned Fusion (RF + Acoustics)</b></span>
+                        </div>
+                    </div>
+
+                    <div class="verdict-gauges">
+                        <div class="gauge-box">
+                            <div class="gauge-circle" id="riskGaugeCircle">
+                                <span class="gauge-value" id="riskGaugeValue">12%</span>
+                            </div>
+                            <span class="gauge-label">Deepfake Risk Score</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Three Branch Metrics Columns -->
+                <div class="branches-grid">
+                    <!-- Branch 1: Supervised ML Classifier -->
+                    <div class="card branch-card">
+                        <div class="branch-header">
+                            <div class="branch-tag ml-tag">Branch 1: Supervised ML</div>
+                            <h4 class="branch-name">Random Forest Classifier</h4>
+                        </div>
+                        <div class="branch-stat-row">
+                            <span class="stat-name">AI Pattern Probability</span>
+                            <span class="stat-value" id="mlProbValue">12.5%</span>
+                        </div>
+                        <div class="stat-bar-track">
+                            <div class="stat-bar-fill ml-fill" id="mlProbBar" style="width: 12.5%;"></div>
+                        </div>
+                        <div class="subfeatures-list">
+                            <div class="subfeature-item">
+                                <span>MFCC Acoustic Spectrum:</span>
+                                <b>13 Coefficients (μ, σ)</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Spectral Contrast:</span>
+                                <b>6 Frequency Bands</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Spectral Flatness:</span>
+                                <b id="mlFlatnessValue">0.042</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branch 2: Interpretable Signal Acoustics -->
+                    <div class="card branch-card">
+                        <div class="branch-header">
+                            <div class="branch-tag acoustic-tag">Branch 2: Signal Acoustics</div>
+                            <h4 class="branch-name">Physical Acoustic Indicators</h4>
+                        </div>
+                        <div class="branch-stat-row">
+                            <span class="stat-name">Estimated SNR</span>
+                            <span class="stat-value" id="acousticSnrValue">24.8 dB</span>
+                        </div>
+                        <div class="subfeatures-list">
+                            <div class="subfeature-item">
+                                <span>Fundamental F0 Pitch:</span>
+                                <b id="pitchMeanStd">185.2 Hz (±42.1 Hz)</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Pitch Stability Index:</span>
+                                <b id="pitchStabilityVal">0.18 (Natural)</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Silence / Pause Ratio:</span>
+                                <b id="silenceRatioVal">18.4%</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Audio Quality Check:</span>
+                                <b id="qualityCheckVal">HIGH</b>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Branch 3: Multilingual Faster Whisper -->
+                    <div class="card branch-card">
+                        <div class="branch-header">
+                            <div class="branch-tag whisper-tag">Branch 3: Language ID</div>
+                            <h4 class="branch-name">Pretrained Faster Whisper</h4>
+                        </div>
+                        <div class="branch-stat-row">
+                            <span class="stat-name">Detected Language</span>
+                            <span class="stat-value highlight-lang" id="detectedLangValue">English</span>
+                        </div>
+                        <div class="subfeatures-list">
+                            <div class="subfeature-item">
+                                <span>Model Architecture:</span>
+                                <b>Quantized CPU (int8)</b>
+                            </div>
+                            <div class="subfeature-item">
+                                <span>Language Confidence:</span>
+                                <b id="langConfidenceVal">99.4%</b>
+                            </div>
+                            <div class="subfeature-item transcript-box">
+                                <span>Preview Transcript:</span>
+                                <p class="transcript-text" id="transcriptText">"Natural spoken speech transcription..."</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Second-by-Second Suspicious Timeline -->
+                <div class="card timeline-card">
+                    <div class="timeline-header">
+                        <div>
+                            <h3 class="timeline-title">Second-by-Second Suspicious Segment Timeline</h3>
+                            <p class="timeline-subtitle">Local temporal window forensics (1-second intervals) showing suspicious segment localization</p>
+                        </div>
+                        <div class="timeline-legend">
+                            <span class="legend-item"><span class="legend-color safe-color"></span> Human (<50% Risk)</span>
+                            <span class="legend-item"><span class="legend-color suspicious-color"></span> Suspicious / AI (≥50% Risk)</span>
+                        </div>
+                    </div>
+
+                    <!-- Timeline Bar Visualizer -->
+                    <div class="timeline-track-container">
+                        <div class="timeline-track" id="timelineTrack"></div>
+                    </div>
+
+                    <div class="segment-detail-hover" id="segmentHoverDetail" style="display: none;">
+                        <span id="hoverTimeSpan">0.0s - 1.0s</span>: <b id="hoverVerdict">Human</b> (Risk: <span id="hoverRisk">14%</span>, SNR: <span id="hoverSnr">22dB</span>)
+                    </div>
+                </div>
+
+                <!-- Forensic Explainability & Decision Insights -->
+                <div class="card explainability-card">
+                    <h3 class="explainability-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="section-icon">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        Forensic Evidence & Explainability Justification
+                    </h3>
+                    <ul class="explainability-list" id="explainabilityList"></ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- ABLATION & BENCHMARKS VIEW -->
+        <main id="ablationView" style="display: none;">
+            <section class="hero">
+                <div class="hero-chip">Research & Experimental Validation</div>
+                <h2 class="hero-title">Ablation Study & Cross-Domain Generalization</h2>
+                <p class="hero-subtitle">
+                    Systematic evaluation of feature subsets, heuristic acoustic indicators, and learned logistic regression fusion
+                    across the ASVspoof 2019 LA benchmark and In the Wild real-world dataset.
+                </p>
+            </section>
+
+            <div class="card benchmark-card">
+                <div class="benchmark-header">
+                    <h3 class="benchmark-title">Ablation Experiment Comparison Table</h3>
+                    <button class="btn-refresh-benchmarks" id="btnRefreshAblation">🔄 Re-evaluate Benchmarks</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="ablation-table">
+                        <thead>
+                            <tr>
+                                <th>Config</th>
+                                <th>System Architecture & Features</th>
+                                <th>Classifier</th>
+                                <th>Accuracy</th>
+                                <th>ROC-AUC</th>
+                                <th>Equal Error Rate (EER)</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ablationTableBody">
+                            <!-- Populated via script.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="ablation-notes-grid">
+                    <div class="note-card">
+                        <h4>Equal Error Rate (EER)</h4>
+                        <p>Standard anti-spoofing metric measuring the operating threshold where False Acceptance Rate equals False Rejection Rate. Lower EER indicates superior separation.</p>
+                    </div>
+                    <div class="note-card">
+                        <h4>Learned Fusion Advantage</h4>
+                        <p>Replacing fixed heuristic weights with a calibrated Logistic Regression model ensures statistical weights adapt dynamically to both clean benchmarks and noisy real-world recordings.</p>
+                    </div>
+                    <div class="note-card">
+                        <h4>Cross-Domain Robustness</h4>
+                        <p>Evaluates generalization from ASVspoof 2019 to In the Wild online audio, mitigating dataset-specific spectral overfitting.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Voice Anti-Spoofing & Multilingual Forensics Engine • CPU-Optimized Local Execution</p>
+            <div class="footer-links">
+                <a href="/docs" target="_blank">Swagger OpenAPI Docs</a>
+                <a href="/health" target="_blank">System Health</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+
+</html>
