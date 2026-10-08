@@ -1,0 +1,26 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Datasets and heavy raw audio (reduces deployment bundle size drastically)
+dataset/
+training/dataset/
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.m4a
+debug_*
+
+# Git and dev tooling
+.git/
+.gitignore
+tests/
+.env*

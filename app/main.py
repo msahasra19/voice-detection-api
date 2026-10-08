@@ -28,7 +28,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-static_dir = Path("static")
+BASE_DIR = Path(__file__).resolve().parent.parent
+static_dir = BASE_DIR / "static" if (BASE_DIR / "static").exists() else Path("static")
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
@@ -94,7 +95,8 @@ async def predict_endpoint(request: dict = Body(...)):
             )
 
         try:
-            with open("debug_last_uploaded.wav", "wb") as f:
+            temp_debug = os.path.join(tempfile.gettempdir(), "debug_last_uploaded.wav")
+            with open(temp_debug, "wb") as f:
                 f.write(audio_bytes)
         except Exception:
             pass
@@ -124,7 +126,8 @@ async def predict_file_endpoint(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="Uploaded audio file is empty or corrupted.")
 
         try:
-            with open("debug_last_uploaded.wav", "wb") as f:
+            temp_debug = os.path.join(tempfile.gettempdir(), "debug_last_uploaded.wav")
+            with open(temp_debug, "wb") as f:
                 f.write(raw_bytes)
         except Exception:
             pass
@@ -148,7 +151,9 @@ async def get_ablation_report():
     - (C) Random Forest + Heuristic Acoustic Rule
     - (D) Learned Fusion System (Random Forest + Logistic Regression Fusion)
     """
-    report_file = Path("training") / "ablation_results.json"
+    report_file = BASE_DIR / "training" / "ablation_results.json"
+    if not report_file.exists():
+        report_file = Path("training") / "ablation_results.json"
     if report_file.exists():
         try:
             with open(report_file, "r", encoding="utf-8") as f:
@@ -222,10 +227,11 @@ async def get_ablation_report():
 
 @app.get("/health")
 async def health_check():
+    app_dir = Path(__file__).resolve().parent
     return {
         "status": "healthy",
         "service": "Voice Detection AI",
         "version": "2.0.0",
-        "rf_model_loaded": os.path.exists(Path("app") / "voice_model.joblib"),
-        "fusion_model_loaded": os.path.exists(Path("app") / "fusion_model.joblib")
+        "rf_model_loaded": (app_dir / "voice_model.joblib").exists(),
+        "fusion_model_loaded": (app_dir / "fusion_model.joblib").exists()
     }

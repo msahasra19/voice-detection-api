@@ -10,6 +10,5 @@ requests
 faster-whisper
 onnxruntime
 python-dotenv
-pyngrok
 scikit-learn
 joblib
