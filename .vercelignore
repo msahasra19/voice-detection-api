@@ -24,3 +24,4 @@ debug_*
 .gitignore
 tests/
 .env*
+voice-detection-api/

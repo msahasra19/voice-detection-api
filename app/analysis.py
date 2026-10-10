@@ -1,5 +1,6 @@
 import os
 import time
+import tempfile
 import numpy as np
 import librosa
 import joblib
@@ -356,16 +357,18 @@ class LocalWhisperModel:
 
     @classmethod
     def get_model(cls):
-        if not HAS_WHISPER:
+        if not HAS_WHISPER or os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
             return None
         if not cls._init_attempted:
             cls._init_attempted = True
             try:
-                os.environ.setdefault("HF_HOME", "/tmp/hf_home")
-                cls._model = WhisperModel("tiny", device="cpu", compute_type="int8")
+                cache_dir = os.path.join(tempfile.gettempdir(), "hf_home")
+                os.environ.setdefault("HF_HOME", cache_dir)
+                cls._model = WhisperModel("tiny", device="cpu", compute_type="int8", download_root=cache_dir)
             except Exception:
                 try:
-                    cls._model = WhisperModel("base", device="cpu", compute_type="int8")
+                    cache_dir = os.path.join(tempfile.gettempdir(), "hf_home")
+                    cls._model = WhisperModel("base", device="cpu", compute_type="int8", download_root=cache_dir)
                 except Exception as e:
                     print(f"Whisper initialization fallback: {e}")
                     cls._model = None
